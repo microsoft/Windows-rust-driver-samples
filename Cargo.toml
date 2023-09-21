@@ -1,0 +1,22 @@
+[workspace]
+members = ["general/echo/kmdf/driver/*"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+publish = false
+
+[profile.dev]
+panic = "abort"
+lto = true
+
+[profile.release]
+panic = "abort"
+lto = true
+
+[workspace.dependencies]
+wdk = "0.1.0"
+wdk-alloc = "0.1.0"
+wdk-build = "0.1.0"
+wdk-panic = "0.1.0"
+wdk-sys = "0.1.0"
