@@ -59,31 +59,34 @@ If build is successful, this will stamp the INF and create a CAT file placed wit
 
 ### Install
 
-* Suspend Bitlocker
-manage-bde -protectors -disable C:
-* Turn off Secure Boot
-via your UEFI/BIOS settings
-* Suspend bitlocker
-manage-bde -protectors -disable C:
-* Turn on test signing
-bcdedit /set testsigning on
+#### One Time PC Setup
 
+1. If Bitlocker is enabled, suspend Bitlocker
+    Example: `manage-bde -protectors -disable C:`
+1. Turn off Secure Boot via your UEFI/BIOS Settings
+    Example: `shutdown -r -o -t 0` then pick Advanced -> UEFI Settings
+1. If Bitlocker is enabled, suspend Bitlocker again
+    Example: `manage-bde -protectors -disable C:`
+1. Turn on test signing
+    `bcdedit /set testsigning on`
+1. Reboot
+    `shutdown -r -t 0`
 
 1. Copy the following to the DUT (Device Under Test: the computer you want to test the driver on):
    1. `.\target\..configuration..\package`
-   2. `Path\To\Driver\DriverCertificate.cer`
-   3. The version of `devgen.exe` from the WDK Developer Tools that matches the archtecture of your DUT
+   1. `Path\To\Driver\DriverCertificate.cer`
+   1. The version of `devgen.exe` from the WDK Developer Tools that matches the archtecture of your DUT
      * Ex. `C:\ewdk\Program Files\Windows Kits\10\Tools\10.0.22621.0\x64\devgen.exe`
-2. Install the Certificate on the DUT:
+1. Install the Certificate on the DUT:
    1. Double click the certificate
-   2. Click Install Certificate
-   3. Select a Store Location: MUST BE LOCAL MACHINE -> Next
-   4. Place all certificates in the following Store -> Browse -> Trusted Root Certification Authorities -> Ok -> Next
-   5. Finish
-3. Install the driver: (Admin Command Prompt)
-   * In the package directory, run: `pnputil.exe /add-driver echo_2.inf /install`
-4. Create a software device:
-   * In the directory that `devgen.exe` was copied to, run: `devgen.exe /add /hardwareid "root\ECHO_2"`
+   1. Click Install Certificate
+   1. Store Location: Local Machine -> Next
+   1. Place all certificates in the following Store -> Browse -> Trusted Root Certification Authorities -> Ok -> Next
+   1. Finish
+1. Install the driver from Admin Command Prompt:
+   1. In the package directory, run: `pnputil.exe /add-driver echo_2.inf /install`
+1. Create a software device from Admin Command Prompt:
+   1. In the directory that `devgen.exe` was copied to, run: `devgen.exe /add /hardwareid "root\ECHO_2"`
 
 ### Test
 
