@@ -64,7 +64,7 @@ manage-bde -protectors -disable C:
 * Turn off Secure Boot
 via your UEFI/BIOS settings
 * Suspend bitlocker
-anage-bde -protectors -disable C:
+manage-bde -protectors -disable C:
 * Turn on test signing
 bcdedit /set testsigning on
 
