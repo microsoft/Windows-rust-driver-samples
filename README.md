@@ -100,11 +100,13 @@ If build is successful, this will stamp the INF and create a CAT file placed wit
 
 ### Usage
 
-The echo driver can be tested by using the [echo executable](https://github.com/microsoft/Windows-driver-samples/tree/main/general/echo/kmdf/exe)
+The echo driver can be tested by using the [included sample app](./general/echo/kmdf/exe).
 
-* Echoapp.exe --- Send single write and read request synchronously
+* cargo run --bin echoapp
+  * Send single write and read request synchronously
 
-* Echoapp.exe -Async --- Send 100 reads and writes asynchronously
+* cargo run --bin echoapp -- -Async
+  * Send 100 reads and writes asynchronously
 
 Exit the app anytime by pressing Ctrl-C
 
