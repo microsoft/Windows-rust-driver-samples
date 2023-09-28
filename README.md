@@ -60,9 +60,14 @@ If build is successful, this will stamp the INF and create a CAT file placed wit
 ### Install
 
 * Suspend Bitlocker
+manage-bde -protectors -disable C:
 * Turn off Secure Boot
+via your UEFI/BIOS settings
 * Suspend bitlocker
+anage-bde -protectors -disable C:
 * Turn on test signing
+bcdedit /set testsigning on
+
 
 1. Copy the following to the DUT (Device Under Test: the computer you want to test the driver on):
    1. `.\target\..configuration..\package`
