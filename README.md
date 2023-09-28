@@ -11,14 +11,15 @@ The repository provides examples and best practices for Windows driver developme
 #### Required
 
 * Set up [EWDK Build Environment](https://learn.microsoft.com/en-us/windows-hardware/drivers/develop/using-the-enterprise-wdk)
-  * Recommendation Steps
-    * Install the latest version from link: <https://learn.microsoft.com/en-us/legal/windows/hardware/enterprise-wdk-license-2022>
+  * Easy install option:
+    * Install the latest version from link
+      * <https://learn.microsoft.com/en-us/legal/windows/hardware/enterprise-wdk-license-2022>
     * Expand the ISO image to c:\ewdk
     * Start Environment by running in command prompt:
-      * ```pwsh c:\ewdk\LaunchBuildEnv.cmd```
+      * ```c:\ewdk\LaunchBuildEnv.cmd```
 * Install [Clang](https://clang.llvm.org/get_started.html)
   * Easy install option:
-    * ```pwsh winget install LLVM.LLVM```
+    * `winget install LLVM.LLVM`
 
 * Install [Rust](https://www.rust-lang.org/tools/install)
   * Easy install option for x64 systems:
@@ -32,9 +33,7 @@ Invoke-RestMethod -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windo
 
 Run the following commands after setting up Rust.
 
-```pwsh
-cargo install cargo-make --no-default-features --features tls-native
-```
+`cargo install cargo-make --no-default-features --features tls-native`
 
 __Note on arm64: ARM64 support for ring is [not released yet](https://github.com/briansmith/ring/issues/1167), so TLS features must be disabled until arm64 is officially supported by ring (probably in 0.17.0 release)__
 
@@ -42,15 +41,11 @@ __Note on arm64: ARM64 support for ring is [not released yet](https://github.com
 
 These are not-required, but may make it easier to work in a rust environment:
 
-```pwsh
-cargo install cargo-expand cargo-edit cargo-workspaces
-```
+`cargo install cargo-expand cargo-edit cargo-workspaces`
 
 ## Documentation
 
-```pwsh
-cargo doc --document-private-items --open
-```
+`cargo doc --document-private-items --open`
 
 ## Build and Test
 
