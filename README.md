@@ -2,21 +2,39 @@
 
 This is a Rust port of the driver samples from the original [Windows Driver Samples on Github.](https://github.com/microsoft/Windows-driver-samples)
 
-The repository provides examples and best practices for Windows driver development in Rust using crates from [windows-drivers-rs.](https://github.com/microsoft/windows-drivers-rs) <span style="background-color: #FFFF00"></span>
- 
+The repository provides examples and best practices for Windows driver development in Rust using crates from [windows-drivers-rs.](https://github.com/microsoft/windows-drivers-rs)
+
 ## Getting Started
 
 ### Pre-requisites
 
 #### Required
-* Set up [EWDK Build Environment.](https://learn.microsoft.com/en-us/windows-hardware/drivers/develop/using-the-enterprise-wdk)
-* Install [Clang.](https://clang.llvm.org/get_started.html)
-* Install [Rust.](https://www.rust-lang.org/tools/install)
+
+* Set up [EWDK Build Environment](https://learn.microsoft.com/en-us/windows-hardware/drivers/develop/using-the-enterprise-wdk)
+  * Recommendation Steps
+    * Install the latest version from link: <https://learn.microsoft.com/en-us/legal/windows/hardware/enterprise-wdk-license-2022>
+    * Expand the ISO image to c:\ewdk
+    * Start Environment by running in command prompt:
+      * ```pwsh c:\ewdk\LaunchBuildEnv.cmd```
+* Install [Clang](https://clang.llvm.org/get_started.html)
+  * Easy install option:
+    * ```pwsh winget install LLVM.LLVM```
+
+* Install [Rust](https://www.rust-lang.org/tools/install)
+  * Easy install option for x64 systems:
+
+```pwsh
+Invoke-RestMethod -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile "$env:USERPROFILE\Downloads\rustup-init.exe"
+& "$env:USERPROFILE\Downloads\rustup-init.exe" -y
+```
 
 #### Rust Setup
+
 Run the following commands after setting up Rust.
-* `rustup toolchain add nightly-msvc`
-* `cargo install cargo-make --no-default-features --features tls-native`
+
+```pwsh
+cargo install cargo-make --no-default-features --features tls-native
+```
 
 __Note on arm64: ARM64 support for ring is [not released yet](https://github.com/briansmith/ring/issues/1167), so TLS features must be disabled until arm64 is officially supported by ring (probably in 0.17.0 release)__
 
@@ -24,13 +42,15 @@ __Note on arm64: ARM64 support for ring is [not released yet](https://github.com
 
 These are not-required, but may make it easier to work in a rust environment:
 
-* `cargo install cargo-expand`
-* `cargo install cargo-edit`
-* `cargo install cargo-workspaces`
+```pwsh
+cargo install cargo-expand cargo-edit cargo-workspaces
+```
 
 ## Documentation
 
-Use `cargo doc --document-private-items --open` to compile and open documentation
+```pwsh
+cargo doc --document-private-items --open
+```
 
 ## Build and Test
 
@@ -40,7 +60,7 @@ From an EWDK development command prompt, run:
 
 `cargo make`
 
-If build is successful, this will stamp the INF and create a CAT file placed with driver binary and INF in `Package` folder. 
+If build is successful, this will stamp the INF and create a CAT file placed with driver binary and INF in `Package` folder.
 
 ### Install
 
@@ -73,9 +93,10 @@ If build is successful, this will stamp the INF and create a CAT file placed wit
 ### Usage
 
 The echo driver can be tested by using the [echo executable](https://github.com/microsoft/Windows-driver-samples/tree/main/general/echo/kmdf/exe)
-- Echoapp.exe --- Send single write and read request synchronously
 
-- Echoapp.exe -Async --- Send 100 reads and writes asynchronously
+* Echoapp.exe --- Send single write and read request synchronously
+
+* Echoapp.exe -Async --- Send 100 reads and writes asynchronously
 
 Exit the app anytime by pressing Ctrl-C
 
@@ -103,8 +124,8 @@ For information about important changes that need to be made to the WDK sample d
 
 ## Trademarks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
+trademarks or logos is subject to and must follow
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
