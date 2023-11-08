@@ -1,4 +1,0 @@
-# Test apps do not need the driver signing process so skip the workspace signing setup
-[tasks.sign]
-clear = true
-dependencies = ["build"]

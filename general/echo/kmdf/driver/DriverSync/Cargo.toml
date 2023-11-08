@@ -6,6 +6,8 @@ rust-version = "1.72.1"
 edition.workspace = true
 publish.workspace = true
 
+[package.metadata.wdk]
+
 [lib]
 crate-type = ["cdylib"]
 

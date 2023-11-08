@@ -1,5 +1,5 @@
 [workspace]
-members = ["general/echo/kmdf/driver/*","general/echo/kmdf/exe"]
+members = ["general/echo/kmdf/driver/*", "general/echo/kmdf/exe"]
 resolver = "2"
 
 [workspace.package]
@@ -17,8 +17,8 @@ panic = "abort"
 lto = true
 
 [workspace.dependencies]
-wdk = "0.1.0"
-wdk-alloc = "0.1.0"
-wdk-build = "0.1.0"
-wdk-panic = "0.1.0"
-wdk-sys = "0.1.0"
+wdk = "0.2.0"
+wdk-alloc = "0.2.0"
+wdk-build = "0.2.0"
+wdk-panic = "0.2.0"
+wdk-sys = "0.2.0"
