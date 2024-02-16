@@ -9,14 +9,14 @@ edition.workspace = true
 publish.workspace = true
 
 [dependencies.once_cell]
-version = "1.18.0"
+version = "1.19.0"
 
 [dependencies.uuid]
-version = "1.5.0"
+version = "1.7.0"
 features = ["macro-diagnostics"]
 
 [dependencies.windows-sys]
-version = "0.48.0"
+version = "0.52.0"
 features = [
   "Win32_Devices_DeviceAndDriverInstallation",
   "Win32_Storage_FileSystem",
