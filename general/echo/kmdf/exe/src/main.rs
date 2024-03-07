@@ -382,9 +382,8 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
         // SAFETY:
         // Get the pointer for the list of Overlapped array for ReadFile at the offset
         // for request 'i'
-        let overlap_struct_offset = unsafe {
-            ov_list.as_mut_ptr().offset(isize::try_from(i).unwrap())
-        };
+        let overlap_struct_offset =
+            unsafe { ov_list.as_mut_ptr().offset(isize::try_from(i).unwrap()) };
 
         if io_type == READER_TYPE {
             // SAFETY:
