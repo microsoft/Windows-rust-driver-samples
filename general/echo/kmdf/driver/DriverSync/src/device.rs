@@ -2,16 +2,33 @@
 // License: MIT OR Apache-2.0
 
 use wdk::{nt_success, paged_code, println};
-use wdk_sys::{NTSTATUS, WDFDEVICE_INIT, *};
+use wdk_sys::{
+    macros,
+    APC_LEVEL,
+    NTSTATUS,
+    STATUS_SUCCESS,
+    ULONG,
+    WDFDEVICE,
+    WDFDEVICE_INIT,
+    WDFOBJECT,
+    WDFQUEUE,
+    WDF_NO_HANDLE,
+    WDF_OBJECT_ATTRIBUTES,
+    WDF_PNPPOWER_EVENT_CALLBACKS,
+    _WDF_EXECUTION_LEVEL,
+    _WDF_SYNCHRONIZATION_SCOPE,
+};
 
 use crate::{
     queue::echo_queue_initialize,
     queue_get_context,
-    wdf_object_context::*,
+    wdf_object_context::wdf_get_context_type_info,
+    wdf_object_get_device_context,
     DeviceContext,
+    KeGetCurrentIrql,
     GUID_DEVINTERFACE_ECHO,
+    WDF_DEVICE_CONTEXT_TYPE_INFO,
     WDF_REQUEST_CONTEXT_TYPE_INFO,
-    *,
 };
 
 /// Worker routine called to create a device and its software resources.
@@ -19,14 +36,14 @@ use crate::{
 /// # Arguments:
 ///
 /// * `device_init` - Pointer to an opaque init structure. Memory for this
-///   structure will be freed by the framework when the WdfDeviceCreate
+///   structure will be freed by the framework when the `WdfDeviceCreate`
 ///   succeeds. So don't access the structure after that point.
 ///
 /// # Return value:
 ///
 /// * `NTSTATUS`
 #[link_section = "PAGE"]
-pub(crate) fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
+pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
     paged_code!();
 
     // Register pnp/power callbacks so that we can start and stop the timer as the
@@ -47,7 +64,7 @@ pub(crate) fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTAT
             WdfDeviceInitSetPnpPowerEventCallbacks,
             device_init,
             &mut pnp_power_callbacks
-        )
+        );
     }];
 
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
@@ -63,7 +80,7 @@ pub(crate) fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTAT
             WdfDeviceInitSetRequestAttributes,
             device_init,
             &mut attributes
-        )
+        );
     }];
 
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
