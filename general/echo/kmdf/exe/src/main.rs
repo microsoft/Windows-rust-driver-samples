@@ -9,7 +9,6 @@
 //! built on top of the raw FFI bindings provided by [`wdk-sys`], and provides a
 //! safe, idiomatic rust interface to the WDK.
 #![cfg_attr(feature = "nightly", feature(hint_must_use))]
-#![deny(warnings)]
 #![deny(missing_docs)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::all)]
@@ -372,26 +371,21 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
     let mut buf: Vec<u8> = vec![0; max_pending_requests * BUFFER_SIZE];
 
     for i in 0..max_pending_requests {
+        // SAFETY:
+        // Get the offset into the buffer for sending data at offset for request 'i'
+        let buffer_offset = unsafe {
+            (buf.as_mut_ptr()
+                .offset(isize::try_from(i * BUFFER_SIZE).unwrap()))
+            .cast()
+        };
+
+        // SAFETY:
+        // Get the pointer for the list of Overlapped array for ReadFile at the offset
+        // for request 'i'
+        let overlap_struct_offset =
+            unsafe { ov_list.as_mut_ptr().offset(isize::try_from(i).unwrap()) };
+
         if io_type == READER_TYPE {
-            let buffer_offset;
-
-            // SAFETY:
-            // Get the offset into the buffer for sending data at offset for request 'i'
-            unsafe {
-                buffer_offset = (buf
-                    .as_mut_ptr()
-                    .offset(isize::try_from(i * BUFFER_SIZE).unwrap()))
-                .cast();
-            }
-
-            let overlap_struct_offset;
-            // SAFETY:
-            // Get the poiner for the list of Overlapped array for ReadFile at the offset
-            // for request 'i'
-            unsafe {
-                overlap_struct_offset = ov_list.as_mut_ptr().offset(isize::try_from(i).unwrap());
-            }
-
             // SAFETY:
             // Call Win32 API FFI ReadFile to read from driver with an overlap option
             unsafe {
@@ -415,25 +409,6 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
                 }
             }
         } else {
-            let buffer_offset;
-
-            // SAFETY:
-            // Get the offset into the buffer for sending data at offset for request 'i'
-            unsafe {
-                buffer_offset = (buf
-                    .as_mut_ptr()
-                    .offset(isize::try_from(i * BUFFER_SIZE).unwrap()))
-                .cast();
-            }
-
-            let overlap_struct_offset;
-            // SAFETY:
-            // Get the poiner for the list of Overlapped array for ReadFile at the offset
-            // for request 'i'
-            unsafe {
-                overlap_struct_offset = ov_list.as_mut_ptr().offset(isize::try_from(i).unwrap());
-            }
-
             // SAFETY:
             // Call Win32 API FFI WriteFile to write to driver with an overlap option
             unsafe {

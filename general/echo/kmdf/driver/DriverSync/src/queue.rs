@@ -4,9 +4,44 @@
 use core::sync::atomic::Ordering;
 
 use wdk::{nt_success, paged_code, println, wdf};
-use wdk_sys::{ntddk::*, *};
+use wdk_sys::{
+    macros,
+    ntddk::{ExAllocatePool2, ExFreePool, KeGetCurrentIrql},
+    APC_LEVEL,
+    NTSTATUS,
+    POOL_FLAG_NON_PAGED,
+    SIZE_T,
+    STATUS_BUFFER_OVERFLOW,
+    STATUS_CANCELLED,
+    STATUS_INSUFFICIENT_RESOURCES,
+    STATUS_INVALID_DEVICE_REQUEST,
+    STATUS_SUCCESS,
+    ULONG,
+    WDFDEVICE,
+    WDFMEMORY,
+    WDFOBJECT,
+    WDFQUEUE,
+    WDFREQUEST,
+    WDFTIMER,
+    WDF_IO_QUEUE_CONFIG,
+    WDF_NO_HANDLE,
+    WDF_OBJECT_ATTRIBUTES,
+    WDF_TIMER_CONFIG,
+    _WDF_EXECUTION_LEVEL,
+    _WDF_IO_QUEUE_DISPATCH_TYPE,
+    _WDF_SYNCHRONIZATION_SCOPE,
+    _WDF_TRI_STATE,
+};
 
-use crate::{queue_get_context, wdf_object_context::*, *};
+use crate::{
+    queue_get_context,
+    request_get_context,
+    wdf_object_context::wdf_get_context_type_info,
+    AtomicI32,
+    QueueContext,
+    RequestContext,
+    WDF_QUEUE_CONTEXT_TYPE_INFO,
+};
 
 /// Set max write length for testing
 const MAX_WRITE_LENGTH: usize = 1024 * 40;
@@ -76,7 +111,7 @@ fn echo_interlocked_increment_gtzero(target: &AtomicI32) -> i32 {
 ///
 /// A single default I/O Queue is configured for serial request
 /// processing, and a driver context memory allocation is created
-/// to hold our structure QUEUE_CONTEXT.
+/// to hold our structure `QUEUE_CONTEXT`.
 ///
 /// This memory may be used by the driver automatically synchronized
 /// by the Queue's presentation lock.
@@ -104,7 +139,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
     let mut queue_config = WDF_IO_QUEUE_CONFIG {
         Size: core::mem::size_of::<WDF_IO_QUEUE_CONFIG>() as ULONG,
         PowerManaged: _WDF_TRI_STATE::WdfUseDefault,
-        DefaultQueue: true as u8,
+        DefaultQueue: u8::from(true),
         DispatchType: _WDF_IO_QUEUE_DISPATCH_TYPE::WdfIoQueueDispatchSequential,
         EvtIoRead: Some(echo_evt_io_read),
         EvtIoWrite: Some(echo_evt_io_write),
@@ -171,7 +206,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
         Size: core::mem::size_of::<WDF_TIMER_CONFIG>() as ULONG,
         EvtTimerFunc: Some(echo_evt_timer_func),
         Period: TIMER_PERIOD,
-        AutomaticSerialization: true as u8,
+        AutomaticSerialization: u8::from(true),
         TolerableDelay: 0,
         ..WDF_TIMER_CONFIG::default()
     };
@@ -296,7 +331,7 @@ extern "C" fn echo_evt_request_cancel(request: WDFREQUEST) {
                 request,
                 STATUS_CANCELLED,
                 0
-            )
+            );
         }];
     }
 }
@@ -361,7 +396,7 @@ fn echo_set_current_request(request: WDFREQUEST, queue: WDFQUEUE) {
     }
 }
 
-/// This event is called when the framework receives IRP_MJ_READ request.
+/// This event is called when the framework receives `IRP_MJ_READ` request.
 /// It will copy the content from the queue-context buffer to the request
 /// buffer. If the driver hasn't received any write request earlier, the read
 /// returns zero.
@@ -466,7 +501,7 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
     echo_set_current_request(request, queue);
 }
 
-/// This event is invoked when the framework receives IRP_MJ_WRITE request.
+/// This event is invoked when the framework receives `IRP_MJ_WRITE` request.
 /// This routine allocates memory buffer, copies the data from the request to
 /// it, and stores the buffer pointer in the queue-context with the length
 /// variable representing the buffers length. The actual completion of the
@@ -506,7 +541,7 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
                 request,
                 STATUS_BUFFER_OVERFLOW,
                 0
-            )
+            );
         }];
     }
 
@@ -595,7 +630,7 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
     echo_set_current_request(request, queue);
 }
 
-/// This is the TimerDPC the driver sets up to complete requests.
+/// This is the `TimerDPC` the driver sets up to complete requests.
 /// This function is registered when the WDFTIMER object is created.
 ///
 /// This function does *NOT* automatically synchronize with the I/O Queue

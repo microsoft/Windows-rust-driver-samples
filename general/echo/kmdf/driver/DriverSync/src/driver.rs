@@ -2,7 +2,26 @@
 // License: MIT OR Apache-2.0
 
 use wdk::{nt_success, paged_code, println};
-use wdk_sys::{macros, ntddk::KeGetCurrentIrql, NTSTATUS, WDFDRIVER, *};
+use wdk_sys::{
+    macros,
+    ntddk::KeGetCurrentIrql,
+    APC_LEVEL,
+    DRIVER_OBJECT,
+    NTSTATUS,
+    PCUNICODE_STRING,
+    PDRIVER_OBJECT,
+    PWDFDEVICE_INIT,
+    STATUS_SUCCESS,
+    ULONG,
+    UNICODE_STRING,
+    WDFDRIVER,
+    WDFOBJECT,
+    WDFSTRING,
+    WDF_DRIVER_CONFIG,
+    WDF_DRIVER_VERSION_AVAILABLE_PARAMS,
+    WDF_NO_HANDLE,
+    WDF_NO_OBJECT_ATTRIBUTES,
+};
 
 use crate::device;
 
@@ -10,17 +29,17 @@ extern crate alloc;
 
 use alloc::{slice, string::String};
 
-/// DriverEntry initializes the driver and is the first routine called by the
-/// system after the driver is loaded. DriverEntry specifies the other entry
-/// points in the function driver, such as EvtDevice and DriverUnload.
+/// `DriverEntry` initializes the driver and is the first routine called by the
+/// system after the driver is loaded. `DriverEntry` specifies the other entry
+/// points in the function driver, such as `EvtDevice` and `DriverUnload`.
 ///
 /// # Arguments
 ///
 /// * `driver` - represents the instance of the function driver that is loaded
-///   into memory. DriverEntry must initialize members of DriverObject before it
-///   returns to the caller. DriverObject is allocated by the system before the
-///   driver is loaded, and it is released by the system after the system
-///   unloads the function driver from memory.
+///   into memory. `DriverEntry` must initialize members of `DriverObject`
+///   before it returns to the caller. `DriverObject` is allocated by the system
+///   before the driver is loaded, and it is released by the system after the
+///   system unloads the function driver from memory.
 /// * `registry_path` - represents the driver specific path in the Registry. The
 ///   function driver can use the path to store driver related data between
 ///   reboots. The path does not store hardware instance specific data.
@@ -40,7 +59,7 @@ extern "system" fn driver_entry(
         EvtDriverDeviceAdd: Some(echo_evt_device_add),
         ..WDF_DRIVER_CONFIG::default()
     };
-    let driver_handle_output = WDF_NO_HANDLE as *mut WDFDRIVER;
+    let driver_handle_output = WDF_NO_HANDLE.cast::<WDFDRIVER>();
 
     let nt_status = unsafe {
         macros::call_unsafe_wdf_function_binding!(
@@ -63,14 +82,15 @@ extern "system" fn driver_entry(
     nt_status
 }
 
-/// EvtDeviceAdd is called by the framework in response to AddDevice
-/// call from the PnP manager. We create and initialize a device object to
+/// `EvtDeviceAdd` is called by the framework in response to `AddDevice`
+/// call from the `PnP` manager. We create and initialize a device object to
 /// represent a new instance of the device.
 ///
 /// # Arguments:
 ///
-/// * `_driver` - Handle to a framework driver object created in DriverEntry
-/// * `device_init` - Pointer to a framework-allocated WDFDEVICE_INIT structure.
+/// * `_driver` - Handle to a framework driver object created in `DriverEntry`
+/// * `device_init` - Pointer to a framework-allocated `WDFDEVICE_INIT`
+///   structure.
 ///
 /// # Return value:
 ///
@@ -134,8 +154,8 @@ fn echo_print_driver_version() -> NTSTATUS {
         return nt_status;
     }
 
-    let [_] = [unsafe {
-        macros::call_unsafe_wdf_function_binding!(WdfStringGetUnicodeString, string, &mut us)
+    let [()] = [unsafe {
+        macros::call_unsafe_wdf_function_binding!(WdfStringGetUnicodeString, string, &mut us);
     }];
     let driver_version = String::from_utf16_lossy(unsafe {
         slice::from_raw_parts(
@@ -145,8 +165,8 @@ fn echo_print_driver_version() -> NTSTATUS {
     });
     println!("Echo Sample {driver_version}");
 
-    let [_] = [unsafe {
-        macros::call_unsafe_wdf_function_binding!(WdfObjectDelete, string as WDFOBJECT)
+    let [()] = [unsafe {
+        macros::call_unsafe_wdf_function_binding!(WdfObjectDelete, string as WDFOBJECT);
     }];
     // string = core::ptr::null_mut();
 
