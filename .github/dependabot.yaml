@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      timezone: "America/Los_Angeles"
+      time: "06:00"
+    commit-message:
+      prefix: "chore"
+    labels:
+      - "type:dependabot"
+      - "type:dependencies-cargo"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      timezone: "America/Los_Angeles"
+      time: "06:00"
+    commit-message:
+      prefix: "chore"
+    labels:
+      - "type:dependabot"
+      - "type:dependencies-github-actions"

@@ -11,7 +11,7 @@
 //!    timer DPC will complete it next time the DPC runs.
 //!
 //!    During the time the request is waiting for the DPC to run, it is
-//!    made cancellable by the call WdfRequestMarkCancelable. This
+//!    made cancellable by the call `WdfRequestMarkCancelable`. This
 //!    allows the test program to cancel the request and exit instantly.
 //!
 //!    This rather complicated set of events is designed to demonstrate
@@ -30,7 +30,6 @@
 
 #![no_std]
 #![cfg_attr(feature = "nightly", feature(hint_must_use))]
-#![deny(warnings)]
 #![deny(clippy::all)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::nursery)]
@@ -47,7 +46,17 @@ extern crate wdk_panic;
 use wdk::wdf;
 #[cfg(not(test))]
 use wdk_alloc::WDKAllocator;
-use wdk_sys::{ntddk::KeGetCurrentIrql, *};
+use wdk_sys::{
+    macros,
+    ntddk::KeGetCurrentIrql,
+    GUID,
+    NTSTATUS,
+    PVOID,
+    ULONG,
+    WDFOBJECT,
+    WDFREQUEST,
+    WDF_OBJECT_CONTEXT_TYPE_INFO,
+};
 mod wdf_object_context;
 use core::sync::atomic::AtomicI32;
 
