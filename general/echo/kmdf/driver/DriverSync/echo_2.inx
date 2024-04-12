@@ -7,8 +7,8 @@
 
 [Version]
 Signature   = "$WINDOWS NT$"
-Class       = Sample
-ClassGuid   = {78A1C341-4539-11d3-B88D-00C04FAD5171}
+Class       = Rust_Sample
+ClassGuid   = {BB0D3EC2-E59E-44CE-B711-A6BD51EB810E}
 Provider    = %ProviderString%
 PnpLockDown = 1
 
