@@ -1,19 +1,19 @@
-extend = "target/rust-driver-makefile.toml"
+extend = [ { path =  "target/rust-driver-makefile.toml" }, { path = "target/rust-driver-sample-makefile.toml" } ]
 
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
-WDK_BUILD_ADDITIONAL_INFVERIF_FLAGS = "/msft"
 
 [config]
 load_script = '''
 #!@rust
 //! ```cargo
 //! [dependencies]
-//! wdk-build = "0.2.0"
+//! wdk-build = "0.3.0"
 //! ```
 #![allow(unused_doc_comments)]
 
-wdk_build::cargo_make::load_rust_driver_makefile()?
+wdk_build::cargo_make::load_rust_driver_makefile()?;
+wdk_build::cargo_make::load_rust_driver_sample_makefile()?
 '''
 
 [tasks.default]
