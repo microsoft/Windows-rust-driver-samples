@@ -7,8 +7,8 @@
 
 [Version]
 Signature   = "$WINDOWS NT$"
-Class       = Sample
-ClassGuid   = {78A1C341-4539-11d3-B88D-00C04FAD5171}
+Class       = SampleClass
+ClassGuid   = {85eaace9-8bc8-4063-b56c-f078b7671d53}
 Provider    = %ProviderString%
 PnpLockDown = 1
 
