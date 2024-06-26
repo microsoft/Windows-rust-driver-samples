@@ -12,7 +12,7 @@ publish.workspace = true
 version = "1.19.0"
 
 [dependencies.uuid]
-version = "1.8.0"
+version = "1.9.1"
 features = ["macro-diagnostics"]
 
 [dependencies.windows-sys]
