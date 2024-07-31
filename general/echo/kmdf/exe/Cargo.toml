@@ -16,7 +16,7 @@ version = "1.8.0"
 features = ["macro-diagnostics"]
 
 [dependencies.windows-sys]
-version = "0.52.0"
+version = "0.59.0"
 features = [
   "Win32_Devices_DeviceAndDriverInstallation",
   "Win32_Storage_FileSystem",
