@@ -390,6 +390,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8afb450f006bf6385ca15ef45d71d2288452bc3683ce2e2cacc0d18e4be60b58"
 
 [[package]]
+name = "pool_leak"
+version = "0.1.0"
+dependencies = [
+ "paste",
+ "wdk",
+ "wdk-alloc",
+ "wdk-build",
+ "wdk-panic",
+ "wdk-sys",
+]
+
+[[package]]
 name = "prettyplease"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"

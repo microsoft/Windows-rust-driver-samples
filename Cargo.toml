@@ -1,5 +1,5 @@
 [workspace]
-members = ["general/echo/kmdf/driver/*", "general/echo/kmdf/exe"]
+members = ["general/echo/kmdf/driver/*", "general/echo/kmdf/exe", "tools/dv/samples/kmdf/pool_leak"]
 resolver = "2"
 
 [workspace.package]
