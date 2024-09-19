@@ -1,7 +1,20 @@
 // Copyright (c) Microsoft Corporation.
 // License: MIT OR Apache-2.0
 
-//! # Abstract: TBD
+//! # Abstract
+//!
+//!     This KMDF sample contains an intentional error that is designed to
+//! demonstrate the capabilities and features of Driver Verifier and the Device
+//! Fundamental tests.
+//!     
+//!     The driver is desgined to allocate memory using ExAllocatePool2 to its
+//! Device Context buffer when a device is added by the PnP manager. However,
+//! this buffer is not freed anywhere in the driver, including the driver unload
+//! function.
+//!
+//!     By enabling the Driver Verifier on this driver, the pool leak
+//! violation can be caught when the driver is unloaded and with an active KDNET
+//! session, the bug can be analyzed further.
 
 #![no_std]
 #![cfg_attr(feature = "nightly", feature(hint_must_use))]
