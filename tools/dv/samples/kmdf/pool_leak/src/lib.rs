@@ -3,16 +3,16 @@
 
 //! # Abstract
 //!
-//!     This KMDF sample contains an intentional error that is designed to
+//! This KMDF sample contains an intentional error that is designed to
 //! demonstrate the capabilities and features of Driver Verifier and the Device
 //! Fundamental tests.
 //!     
-//!     The driver is desgined to allocate memory using ExAllocatePool2 to its
+//! The driver is designed to allocate memory using ExAllocatePool2 to its
 //! Device Context buffer when a device is added by the PnP manager. However,
 //! this buffer is not freed anywhere in the driver, including the driver unload
 //! function.
 //!
-//!     By enabling the Driver Verifier on this driver, the pool leak
+//! By enabling Driver Verifier on this driver, the pool leak
 //! violation can be caught when the driver is unloaded and with an active KDNET
 //! session, the bug can be analyzed further.
 
@@ -23,6 +23,7 @@
 #![warn(clippy::nursery)]
 #![warn(clippy::cargo)]
 #![allow(clippy::missing_safety_doc)]
+#![allow(clippy::doc_markdown)]
 
 #[cfg(not(test))]
 extern crate wdk_panic;

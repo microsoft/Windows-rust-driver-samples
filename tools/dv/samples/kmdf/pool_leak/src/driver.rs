@@ -123,6 +123,7 @@ extern "C" fn evt_driver_device_add(
 
     println!("Enter: EchoEvtDeviceAdd");
 
+    #[allow(clippy::cast_possible_truncation)]
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
         Size: core::mem::size_of::<WDF_OBJECT_ATTRIBUTES>() as ULONG,
         ExecutionLevel: _WDF_EXECUTION_LEVEL::WdfExecutionLevelInheritFromParent,
@@ -153,9 +154,9 @@ extern "C" fn evt_driver_device_add(
     // it will return NULL and assert if run under framework verifier mode.
     let device_context = unsafe { wdf_object_get_device_context(device as WDFOBJECT) };
     unsafe {
-        let length: usize = 64;
+        const LENGTH: usize = 64;
         (*device_context).buffer =
-            ExAllocatePool2(POOL_FLAG_NON_PAGED, length as SIZE_T, 's' as u32);
+            ExAllocatePool2(POOL_FLAG_NON_PAGED, LENGTH as SIZE_T, 's' as u32);
     }
 
     nt_status = unsafe {

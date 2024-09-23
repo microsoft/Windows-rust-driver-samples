@@ -1,10 +1,10 @@
 # Driver Verifier Pool Leak Sample
 
-This KMDF sample contains an intentional error that demonstrates the capabilities and features of Driver Verifier and the Device Fundamental tests.
+This KMDF sample contains an intentional error that demonstrates the capabilities and features of Driver Verifier and the Device Fundamentals tests.
     
 The driver uses WDM's ExAllocatePool2 API to allocate memory in its Device Context buffer when a device is added by the PnP manager. However, this buffer is not freed anywhere in the driver, including the driver unload function.
 
-By enabling the Driver Verifier on this driver, the pool leak violation can be caught when the driver is unloaded and with an active KDNET session, the bug can be analyzed further.
+By enabling Driver Verifier on this driver, the pool leak violation can be caught when the driver is unloaded and with an active KDNET session, the bug can be analyzed further.
 
 ## Steps to Reproduce the issue
 
@@ -48,7 +48,7 @@ By enabling the Driver Verifier on this driver, the pool leak violation can be c
     pnputil.exe /add-driver .\pool_leak.inf /install
     ```
 7. Enable Driver Verifier for 'pool_leak.sys' driver package 
-    1. Open run command promt (Start + R) or cmd as administator and run "verifier"
+    1. Open run command prompt (Start + R) or cmd as administator and run "verifier"
     2. In the verifier manager,
         - Create Standard Settings
         - Select driver names from list

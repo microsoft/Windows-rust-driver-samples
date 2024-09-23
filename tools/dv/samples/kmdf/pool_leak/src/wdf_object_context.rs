@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // License: MIT OR Apache-2.0
 
+#![allow(clippy::ref_as_ptr)]
 use wdk_sys::{PCWDF_OBJECT_CONTEXT_TYPE_INFO, WDF_OBJECT_CONTEXT_TYPE_INFO};
 
 #[repr(transparent)]
@@ -38,6 +39,8 @@ macro_rules! wdf_declare_context_type_with_name {
             type [<WDFPointerType$context_type>] = *mut $context_type;
 
             #[link_section = ".data"]
+            #[allow(clippy::ptr_as_ptr)]
+            #[allow(clippy::cast_possible_truncation)]
             pub static [<WDF_ $context_type:snake:upper _TYPE_INFO>]: crate::wdf_object_context::WDFObjectContextTypeInfo = crate::wdf_object_context::WDFObjectContextTypeInfo::new(WDF_OBJECT_CONTEXT_TYPE_INFO {
                 Size: core::mem::size_of::<WDF_OBJECT_CONTEXT_TYPE_INFO>() as ULONG,
                 ContextName: concat!(stringify!($context_type),'\0').as_bytes().as_ptr().cast(),
