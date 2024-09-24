@@ -154,6 +154,9 @@ extern "C" fn evt_driver_device_add(
     // it will return NULL and assert if run under framework verifier mode.
     let device_context = unsafe { wdf_object_get_device_context(device as WDFOBJECT) };
     unsafe {
+        // Allocate non-paged memory pool of 64 bytes (arbitrarily chosen) for the
+        // device context's buffer. This pool of memory is intentionally not freed by
+        // the driver.
         const LENGTH: usize = 64;
         (*device_context).buffer =
             ExAllocatePool2(POOL_FLAG_NON_PAGED, LENGTH as SIZE_T, 's' as u32);
@@ -194,8 +197,9 @@ extern "C" fn evt_driver_device_add(
 extern "C" fn evt_driver_unload(_driver: WDFDRIVER) {
     println!("Enter: evt_driver_unload");
 
-    // Intentionally not freeing the allocated memory to demonstrate Driver
-    // Verifier's capabilities to detect violations in a faulty driver
+    // Ideally, the memory allocated to the device context's buffer in L160 should
+    // be freed here by calling the ExFreePool API. But to demonstrate the Driver
+    // Verifier's ability to catch pool leaks, the buffer is deliberately not freed.
 
     println!("Exit: evt_driver_unload");
 }
