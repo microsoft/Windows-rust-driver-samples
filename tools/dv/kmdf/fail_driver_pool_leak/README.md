@@ -1,14 +1,15 @@
-# Driver Verifier Pool Leak Sample
+# Driver Verifier (Fail Driver) Pool Leak Sample
 
-This KMDF sample contains an intentional error that demonstrates the capabilities and features of Driver Verifier and the Device Fundamentals tests.
-    
-The driver uses WDM's ExAllocatePool2 API to allocate memory in its Device Context buffer when a device is added by the PnP manager. However, this buffer is not freed anywhere in the driver, including the driver unload function.
+This sample KMDF Fail Driver demonstrates the capabilities and features of Driver Verifier and the Device Fundamentals tests. It allocates a pool of memory to a global buffer when a supported device is added by the PnP Manager and intentionally does not free it before the driver is unloaded. This memory leak fault is a system vulnerability that could lead to security and performance issues and bad user experience. 
 
-By enabling Driver Verifier on this driver, the pool leak violation can be caught when the driver is unloaded and with an active KDNET session, the bug can be analyzed further.
+By enabling Driver Verifier on this driver, this pool leak violation can be caught before the driver is unloaded and with an active KDNET session, the bug can be analyzed further.
+
+NOTE: The driver uses WDM's ExAllocatePool2 API directly to allocate memory for its buffer. Ideally, such allocations should be freed by using ExFreePool API. A cleaner way to manage memory in a WDF Driver is to use (wdfmemory)[https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdfmemory/]
+
 
 ## Steps to Reproduce the issue
 
-1. Clone the repository and navigate to the project directory.
+1. Clone the repository and navigate to the project root.
 
 2. Build the driver project using the following command in a WDK environment (or EWDK prompt) - 
     ```
@@ -34,25 +35,25 @@ By enabling Driver Verifier on this driver, the pool leak violation can be caugh
         shutdown -r -t 0
         ```
 
-4. Copy the driver package, available under ".\target\debug\pool_leak_package" to the target system.
+4. Copy the driver package, available under ".\target\debug\fail_driver_pool_leak_package" to the target system.
 
 5. Copy "devgen.exe" from host to the target system. Alternatively you may install WDK on the target system and add the directory that contains "devgen.exe" to PATH variable.
 
 6. Install the driver package and create the device in the target system using the below commands - 
     ```
-    cd "pool_leak_package"
-    devgen.exe /add /bus ROOT /hardwareid "pool_leak"
+    cd "fail_driver_pool_leak_package"
+    devgen.exe /add /bus ROOT /hardwareid "fail_driver_pool_leak"
 
     ## Copy the Device ID. This will be used later to run the tests
 
-    pnputil.exe /add-driver .\pool_leak.inf /install
+    pnputil.exe /add-driver .\fail_driver_pool_leak.inf /install
     ```
-7. Enable Driver Verifier for 'pool_leak.sys' driver package 
+7. Enable Driver Verifier for 'fail_driver_pool_leak.sys' driver package 
     1. Open run command prompt (Start + R) or cmd as administator and run "verifier"
     2. In the verifier manager,
         - Create Standard Settings
         - Select driver names from list
-        - Select 'pool_leak.sys'
+        - Select 'fail_driver_pool_leak.sys'
         - Finish
         - Restart the system
 
@@ -70,7 +71,7 @@ By enabling Driver Verifier on this driver, the pool leak violation can be caugh
     ```
     The logs will be available in WinDbg
     run ```!analyze -v``` for detailed bugcheck report
-    run ```!verifier 3 pool_leak.sys``` for info on the allocations that were leaked that caused the bugcheck.
+    run ```!verifier 3 fail_driver_pool_leak.sys``` for info on the allocations that were leaked that caused the bugcheck.
 
 11. (Alternatively), the bugcheck can be observed when all the devices managed by this driver are removed. 
     You may use pnputil/devcon to enumerate and remove the devices -

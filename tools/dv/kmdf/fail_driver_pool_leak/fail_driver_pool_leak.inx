@@ -2,7 +2,7 @@
 ; Copyright (c)2023, Microsoft Corporation
 ;
 ;Module Name:
-;    pool_leak.INF
+;    fail_driver_pool_leak.INF
 ;===================================================================
 
 [Version]
@@ -19,7 +19,7 @@ DefaultDestDir = 13
 1 = %DiskId1%,,,""
 
 [SourceDisksFiles]
-pool_leak.sys  = 1,,
+fail_driver_pool_leak.sys  = 1,,
 
 ; ================= Install section =================
 
@@ -27,30 +27,30 @@ pool_leak.sys  = 1,,
 %StdMfg%=Standard,NT$ARCH$.10.0...16299
 
 [Standard.NT$ARCH$.10.0...16299]
-%POOL_LEAK.DeviceDesc%=POOL_LEAK_Device, pool_leak
+%fail_driver_pool_leak.DeviceDesc%=fail_driver_pool_leak_Device, fail_driver_pool_leak
 
-[POOL_LEAK_Device.NT$ARCH$]
+[fail_driver_pool_leak_Device.NT$ARCH$]
 CopyFiles=Drivers_Dir
 
 [Drivers_Dir]
-pool_leak.sys
+fail_driver_pool_leak.sys
 
 ; ================= Service installation =================
-[POOL_LEAK_Device.NT$ARCH$.Services]
-AddService = pool_leak, %SPSVCINST_ASSOCSERVICE%, pool_leak_svc_ins
+[fail_driver_pool_leak_Device.NT$ARCH$.Services]
+AddService = fail_driver_pool_leak, %SPSVCINST_ASSOCSERVICE%, fail_driver_pool_leak_svc_ins
 
-[pool_leak_svc_ins]
-DisplayName    = %POOL_LEAK.SVCDESC%
+[fail_driver_pool_leak_svc_ins]
+DisplayName    = %fail_driver_pool_leak.SVCDESC%
 ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
 StartType      = 3               ; SERVICE_DEMAND_START
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
-ServiceBinary  = %13%\pool_leak.sys
+ServiceBinary  = %13%\fail_driver_pool_leak.sys
 
 ; ================= Strings =================
 [Strings]
 SPSVCINST_ASSOCSERVICE      = 0x00000002
 ProviderString              = "Rust-DVFail-Sample"
 StdMfg                      = "(Standard system devices)"
-DiskId1                     = "WDF DVFail Sample POOL_LEAK Installation Disk #1"
-POOL_LEAK.DeviceDesc        = "DVFail Sample WDF POOL_LEAK Driver"
-POOL_LEAK.SVCDESC           = "DVFail Sample WDF POOL_LEAK Service"
+DiskId1                     = "WDF DVFail Sample fail_driver_pool_leak Installation Disk #1"
+fail_driver_pool_leak.DeviceDesc        = "DVFail Sample WDF fail_driver_pool_leak Driver"
+fail_driver_pool_leak.SVCDESC           = "DVFail Sample WDF fail_driver_pool_leak Service"

@@ -35,10 +35,7 @@ use wdk_alloc::WDKAllocator;
 #[global_allocator]
 static GLOBAL_ALLOCATOR: WDKAllocator = WDKAllocator;
 
-mod driver;
-mod wdf_object_context;
-use wdf_object_context::wdf_declare_context_type;
-use wdk_sys::{macros, GUID, PVOID, ULONG, WDFOBJECT, WDF_OBJECT_CONTEXT_TYPE_INFO};
+use wdk_sys::{GUID, PVOID};
 
 // {A1B2C3D4-E5F6-7890-1234-56789ABCDEF0}
 const GUID_DEVINTERFACE: GUID = GUID {
@@ -50,7 +47,7 @@ const GUID_DEVINTERFACE: GUID = GUID {
     ],
 };
 
-pub struct DeviceContext {
-    buffer: PVOID,
-}
-wdf_declare_context_type!(DeviceContext);
+// Global Buffer for the driver
+static mut GLOBAL_BUFFER: PVOID = core::ptr::null_mut();
+
+mod driver;

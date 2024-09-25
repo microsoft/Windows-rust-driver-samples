@@ -1,5 +1,5 @@
 [package]
-name = "pool_leak"
+name = "fail_driver_pool_leak"
 version = "0.1.0"
 edition.workspace = true
 publish.workspace = true
@@ -16,7 +16,6 @@ wdk.workspace = true
 wdk-alloc.workspace = true
 wdk-panic.workspace = true
 wdk-sys.workspace = true
-paste = ">=1.0.14, <2.0.0"
 
 [build-dependencies]
 wdk-build.workspace = true
