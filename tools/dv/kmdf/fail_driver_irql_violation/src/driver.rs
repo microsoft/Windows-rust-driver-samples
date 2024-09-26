@@ -20,6 +20,7 @@ use wdk_sys::{
     WDF_NO_HANDLE,
     WDF_NO_OBJECT_ATTRIBUTES,
     WDF_OBJECT_ATTRIBUTES,
+    WDF_PNPPOWER_EVENT_CALLBACKS,
     _WDF_EXECUTION_LEVEL,
     _WDF_SYNCHRONIZATION_SCOPE,
 };
@@ -94,11 +95,17 @@ extern "system" fn driver_entry(
         return nt_status;
     }
 
-    // Allocate non-paged memory pool of 64 bytes (arbitrarily chosen) for the
+    // Allocate non-paged memory pool of 1 byte (arbitrarily chosen) for the
     // Global buffer
     unsafe {
-        const LENGTH: usize = 64;
+        const LENGTH: usize = 1;
         GLOBAL_BUFFER = ExAllocatePool2(POOL_FLAG_NON_PAGED, LENGTH as SIZE_T, 's' as u32);
+    }
+
+    // Initialize a spinlock that can be used to synchronize access to the buffer
+    if let Err(status) = initialize_spinlock() {
+        println!("Failed to initialize spinlock: {status:#010X}");
+        return status;
     }
 
     println!("Exit: driver_entry");
@@ -127,6 +134,21 @@ extern "C" fn evt_driver_device_add(
     paged_code!();
 
     println!("Enter: evt_driver_device_add");
+
+    let mut pnp_power_callbacks = WDF_PNPPOWER_EVENT_CALLBACKS {
+        Size: core::mem::size_of::<WDF_PNPPOWER_EVENT_CALLBACKS>() as ULONG,
+        EvtDeviceD0Entry: Some(evt_device_d0_entry),
+        EvtDeviceD0Exit: Some(evt_device_d0_exit),
+        ..WDF_PNPPOWER_EVENT_CALLBACKS::default()
+    };
+
+    let [()] = [unsafe {
+        macros::call_unsafe_wdf_function_binding!(
+            WdfDeviceInitSetPnpPowerEventCallbacks,
+            device_init,
+            &mut pnp_power_callbacks
+        );
+    }];
 
     #[allow(clippy::cast_possible_truncation)]
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
@@ -165,11 +187,6 @@ extern "C" fn evt_driver_device_add(
         return nt_status;
     }
 
-    // Initialize spinlock
-    if let Err(status) = initialize_spinlock() {
-        println!("Failed to initialize spinlock: {status:#010X}");
-    }
-
     println!("Exit: evt_driver_device_add");
 
     nt_status
@@ -191,15 +208,37 @@ extern "C" fn evt_driver_device_add(
 extern "C" fn evt_driver_unload(_driver: WDFDRIVER) {
     println!("Enter: evt_driver_unload");
 
+    unsafe { wdk_sys::ntddk::ExFreePool(GLOBAL_BUFFER) };
+
+    println!("Exit: evt_driver_unload");
+}
+
+extern "C" fn evt_device_d0_entry(_device: WDFDEVICE, _prev_state: i32) -> i32 {
+    println!("Enter: evt_device_d0_entry");
     unsafe {
         if let Some(ref spinlock) = SPINLOCK {
             spinlock.acquire();
             if !GLOBAL_BUFFER.is_null() {
-                // Access and modify the global buffer here
-                println!("Accessing and modifying global buffer");
-                // Example: Write to the global buffer
-                core::ptr::write_bytes(GLOBAL_BUFFER, 0, 64);
+                core::ptr::write_bytes(GLOBAL_BUFFER, 1, 1);
+            } else {
+                println!("Global buffer is null");
+            }
+            spinlock.release();
+        } else {
+            println!("Spinlock is not initialized");
+        }
+    }
+    println!("Exit: evt_device_d0_entry");
+    0
+}
 
+extern "C" fn evt_device_d0_exit(_device: WDFDEVICE, _prev_state: i32) -> i32 {
+    println!("Enter: evt_device_d0_exit");
+    unsafe {
+        if let Some(ref spinlock) = SPINLOCK {
+            spinlock.acquire();
+            if !GLOBAL_BUFFER.is_null() {
+                core::ptr::write_bytes(GLOBAL_BUFFER, 0, 1);
                 // Illegal call to KeEnterCriticalRegion will lead to a
                 // violation of 'IrqlKeApcLte2' rule
                 KeEnterCriticalRegion();
@@ -211,8 +250,6 @@ extern "C" fn evt_driver_unload(_driver: WDFDRIVER) {
             println!("Spinlock is not initialized");
         }
     }
-
-    unsafe { wdk_sys::ntddk::ExFreePool(GLOBAL_BUFFER) };
-
-    println!("Exit: evt_driver_unload");
+    println!("Exit: evt_device_d0_exit");
+    0
 }

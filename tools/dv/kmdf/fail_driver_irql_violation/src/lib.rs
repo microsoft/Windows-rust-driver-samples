@@ -62,7 +62,7 @@ static mut GLOBAL_BUFFER: PVOID = core::ptr::null_mut();
 static mut SPINLOCK: Option<SpinLock> = None;
 
 /// `initialize_spinlock` is called by
-fn initialize_spinlock() -> Result<(), usize> {
+fn initialize_spinlock() -> Result<(), i32> {
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
         Size: core::mem::size_of::<WDF_OBJECT_ATTRIBUTES>() as ULONG,
         ExecutionLevel: _WDF_EXECUTION_LEVEL::WdfExecutionLevelInheritFromParent,
@@ -73,7 +73,7 @@ fn initialize_spinlock() -> Result<(), usize> {
     match SpinLock::create(&mut attributes) {
         Err(status) => {
             println!("SpinLock create failed {status:#010X}");
-            return Err(status as usize);
+            return Err(status);
         }
         Ok(spin_lock) => unsafe {
             SPINLOCK = Some(spin_lock);

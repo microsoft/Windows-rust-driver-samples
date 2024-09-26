@@ -75,7 +75,7 @@ NOTE: The driver uses WDM's ExAllocatePool2 API directly to allocate memory for 
     run ```!analyze -v``` for detailed bugcheck report
     run ```!verifier 3 fail_driver_irql_violation.sys``` for info on the allocations that were leaked that caused the bugcheck.
 
-11. (Alternatively), the bugcheck can be observed when all the devices managed by this driver are removed, i.e, when the driver is unloaded from the system. 
+11. (Alternatively), the bugcheck can be observed when a device managed by this driver is removed, i.e, when the EVT_WDF_DEVICE_D0_EXIT callback function is executed. 
     You may use pnputil/devcon to enumerate and remove the devices -
     ```
     # To enumerate the devices
