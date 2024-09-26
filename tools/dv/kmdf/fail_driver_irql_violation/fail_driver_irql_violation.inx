@@ -1,0 +1,56 @@
+;===================================================================
+; Copyright (c)2023, Microsoft Corporation
+;
+;Module Name:
+;    fail_driver_irql_violation.INF
+;===================================================================
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = SoftwareComponent
+ClassGuid   = {5c4c3332-344d-483c-8739-259e934c9cc8}
+Provider    = %ProviderString%
+PnpLockDown = 1
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %DiskId1%,,,""
+
+[SourceDisksFiles]
+fail_driver_irql_violation.sys  = 1,,
+
+; ================= Install section =================
+
+[Manufacturer]
+%StdMfg%=Standard,NT$ARCH$.10.0...16299
+
+[Standard.NT$ARCH$.10.0...16299]
+%FAIL_DRIVER_IRQL_VIOLATION.DeviceDesc%=FAIL_DRIVER_IRQL_VIOLATION_DEVICE, fail_driver_irql_violation
+
+[FAIL_DRIVER_IRQL_VIOLATION_DEVICE.NT$ARCH$]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+fail_driver_irql_violation.sys
+
+; ================= Service installation =================
+[FAIL_DRIVER_IRQL_VIOLATION_DEVICE.NT$ARCH$.Services]
+AddService = fail_driver_irql_violation, %SPSVCINST_ASSOCSERVICE%, fail_driver_irql_violation_svc_ins
+
+[fail_driver_irql_violation_svc_ins]
+DisplayName    = %FAIL_DRIVER_IRQL_VIOLATION.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\fail_driver_irql_violation.sys
+
+; ================= Strings =================
+[Strings]
+SPSVCINST_ASSOCSERVICE                              = 0x00000002
+ProviderString                                      = "Rust-DVFail-Sample"
+StdMfg                                              = "(Standard system devices)"
+DiskId1                                             = "WDF DVFail Sample fail_driver_irql_violation Installation Disk #1"
+FAIL_DRIVER_IRQL_VIOLATION_DEVICE.DeviceDesc        = "DVFail Sample WDF fail_driver_irql_violation Device"
+FAIL_DRIVER_IRQL_VIOLATION_DEVICE.SVCDESC           = "DVFail Sample WDF fail_driver_irql_violation Service"
