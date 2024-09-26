@@ -52,5 +52,5 @@ SPSVCINST_ASSOCSERVICE                              = 0x00000002
 ProviderString                                      = "Rust-DVFail-Sample"
 StdMfg                                              = "(Standard system devices)"
 DiskId1                                             = "WDF DVFail Sample fail_driver_irql_violation Installation Disk #1"
-FAIL_DRIVER_IRQL_VIOLATION_DEVICE.DeviceDesc        = "DVFail Sample WDF fail_driver_irql_violation Device"
-FAIL_DRIVER_IRQL_VIOLATION_DEVICE.SVCDESC           = "DVFail Sample WDF fail_driver_irql_violation Service"
+FAIL_DRIVER_IRQL_VIOLATION.DeviceDesc        = "DVFail Sample WDF fail_driver_irql_violation Device"
+FAIL_DRIVER_IRQL_VIOLATION.SVCDESC           = "DVFail Sample WDF fail_driver_irql_violation Service"
