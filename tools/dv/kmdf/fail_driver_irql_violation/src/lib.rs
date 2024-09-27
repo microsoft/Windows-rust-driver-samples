@@ -7,14 +7,12 @@
 //! demonstrate the capabilities and features of Driver Verifier and the Device
 //! Fundamental tests.
 //!     
-//! The driver is designed to allocate memory using ExAllocatePool2 to its
-//! Device Context buffer when a device is added by the PnP manager. However,
-//! this buffer is not freed anywhere in the driver, including the driver unload
-//! function.
+//! The driver is designed to violate the `IrqlKeApcLte2` Rule by calling
+//! KeEnterCriticalRegion() function after acquiring a spinlock.
 //!
-//! By enabling Driver Verifier on this driver, the pool leak
-//! violation can be caught when the driver is unloaded and with an active KDNET
-//! session, the bug can be analyzed further.
+//! By enabling Driver Verifier on this driver, the IRQL violation can be caught
+//! when a device that this driver manages is removed by the PnP manager. With
+//! an active KDNET session, the bug can be analyzed further.
 
 #![no_std]
 #![cfg_attr(feature = "nightly", feature(hint_must_use))]
@@ -61,7 +59,18 @@ static mut GLOBAL_BUFFER: PVOID = core::ptr::null_mut();
 // Spinlock to synchronize access to the global buffer
 static mut SPINLOCK: Option<SpinLock> = None;
 
-/// `initialize_spinlock` is called by
+/// `initialize_spinlock` initializes a WDF Spinlock that can be used to
+/// synchronize access to any shared data
+///
+/// # Arguments:
+///
+/// # Return Value:
+/// * Returns a `Result` type -
+/// - `Ok(())`: Indicates that the function executed successfully without any
+///   errors.
+/// - `Err(i32)`: Indicates that an error occurred during the execution of the
+///   function. The `i32` value represents the error code, which can be used to
+///   identify the specific error.
 fn initialize_spinlock() -> Result<(), i32> {
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
         Size: core::mem::size_of::<WDF_OBJECT_ATTRIBUTES>() as ULONG,

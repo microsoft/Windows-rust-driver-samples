@@ -4,7 +4,7 @@
 use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
     macros,
-    ntddk::{ExAllocatePool2, KeEnterCriticalRegion, KeGetCurrentIrql},
+    ntddk::{ExAllocatePool2, ExFreePool, KeEnterCriticalRegion, KeGetCurrentIrql},
     APC_LEVEL,
     DRIVER_OBJECT,
     NTSTATUS,
@@ -194,7 +194,7 @@ extern "C" fn evt_driver_device_add(
 
 /// This event callback function is called before the driver is unloaded
 ///
-/// The EvtDriverUnload callback function must deallocate any
+/// The `EvtDriverUnload` callback function must deallocate any
 /// non-device-specific system resources that the driver's DriverEntry routine
 /// allocated.
 ///
@@ -208,11 +208,25 @@ extern "C" fn evt_driver_device_add(
 extern "C" fn evt_driver_unload(_driver: WDFDRIVER) {
     println!("Enter: evt_driver_unload");
 
-    unsafe { wdk_sys::ntddk::ExFreePool(GLOBAL_BUFFER) };
+    unsafe { ExFreePool(GLOBAL_BUFFER) };
 
     println!("Exit: evt_driver_unload");
 }
 
+/// `EvtDeviceD0Entry` event callback function performs operations
+/// that are needed when the driver's device enters the D0 power state.
+///
+/// # Arguments:
+///
+/// * `Device` - A handle to a framework device object.
+/// * `PreviousState` - A WDF_POWER_DEVICE_STATE-typed enumerator that
+///   identifies the previous device power state.
+///
+/// # Return Value:
+///
+/// * STATUS_SUCCESS or another status value for which NT_SUCCESS(status) equals
+///   TRUE. For failures, return a status value for which NT_SUCCESS(status)
+///   equals FALSE
 extern "C" fn evt_device_d0_entry(_device: WDFDEVICE, _prev_state: i32) -> i32 {
     println!("Enter: evt_device_d0_entry");
     unsafe {
@@ -226,12 +240,29 @@ extern "C" fn evt_device_d0_entry(_device: WDFDEVICE, _prev_state: i32) -> i32 {
             spinlock.release();
         } else {
             println!("Spinlock is not initialized");
+            return -1;
         }
     }
     println!("Exit: evt_device_d0_entry");
     0
 }
 
+/// `EvtDeviceD0Exit` event callback function performs operations
+/// that are needed when the driver's device leaves the D0 power state.
+///
+/// NOTE: The IRQL violation fault is injected in this callback
+///
+/// # Arguments:
+///
+/// * `Device` - A handle to a framework device object.
+/// * `TargetState` - A WDF_POWER_DEVICE_STATE-typed enumerator that identifies
+///   the device power state that the device is about to enter.
+///
+/// # Return Value:
+///
+/// * STATUS_SUCCESS or another status value for which NT_SUCCESS(status) equals
+///   TRUE. For failures, return a status value for which NT_SUCCESS(status)
+///   equals FALSE
 extern "C" fn evt_device_d0_exit(_device: WDFDEVICE, _prev_state: i32) -> i32 {
     println!("Enter: evt_device_d0_exit");
     unsafe {
@@ -248,6 +279,7 @@ extern "C" fn evt_device_d0_exit(_device: WDFDEVICE, _prev_state: i32) -> i32 {
             spinlock.release();
         } else {
             println!("Spinlock is not initialized");
+            return -1;
         }
     }
     println!("Exit: evt_device_d0_exit");
