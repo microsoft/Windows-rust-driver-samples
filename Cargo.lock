@@ -257,6 +257,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "fail_driver_pool_leak"
+version = "0.1.0"
+dependencies = [
+ "wdk",
+ "wdk-alloc",
+ "wdk-build",
+ "wdk-panic",
+ "wdk-sys",
+]
+
+[[package]]
 name = "glob"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
