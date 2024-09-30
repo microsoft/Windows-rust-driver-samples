@@ -1,0 +1,25 @@
+[package]
+name = "fail_driver_irql_violation"
+version = "0.1.0"
+edition.workspace = true
+publish.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[package.metadata.wdk]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wdk.workspace = true
+wdk-alloc.workspace = true
+wdk-panic.workspace = true
+wdk-sys.workspace = true
+
+[build-dependencies]
+wdk-build.workspace = true
+
+[features]
+default = []
+nightly = ["wdk/nightly", "wdk-sys/nightly"]
