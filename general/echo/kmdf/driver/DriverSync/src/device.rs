@@ -3,7 +3,7 @@
 
 use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
-    macros,
+    call_unsafe_wdf_function_binding,
     APC_LEVEL,
     NTSTATUS,
     STATUS_SUCCESS,
@@ -60,7 +60,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
     // Register the PnP and power callbacks. Power policy related callbacks will be
     // registered later in SotwareInit.
     let [()] = [unsafe {
-        macros::call_unsafe_wdf_function_binding!(
+        call_unsafe_wdf_function_binding!(
             WdfDeviceInitSetPnpPowerEventCallbacks,
             device_init,
             &mut pnp_power_callbacks
@@ -76,7 +76,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
     };
 
     let [()] = [unsafe {
-        macros::call_unsafe_wdf_function_binding!(
+        call_unsafe_wdf_function_binding!(
             WdfDeviceInitSetRequestAttributes,
             device_init,
             &mut attributes
@@ -93,7 +93,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
 
     let mut device = WDF_NO_HANDLE as WDFDEVICE;
     let mut nt_status = unsafe {
-        macros::call_unsafe_wdf_function_binding!(
+        call_unsafe_wdf_function_binding!(
             WdfDeviceCreate,
             (core::ptr::addr_of_mut!(device_init)) as *mut *mut WDFDEVICE_INIT,
             &mut attributes,
@@ -114,7 +114,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
         // Create a device interface so that application can find and talk
         // to us.
         nt_status = unsafe {
-            macros::call_unsafe_wdf_function_binding!(
+            call_unsafe_wdf_function_binding!(
                 WdfDeviceCreateDeviceInterface,
                 device,
                 &GUID_DEVINTERFACE_ECHO,
@@ -154,14 +154,14 @@ extern "C" fn echo_evt_device_self_managed_io_start(device: WDFDEVICE) -> NTSTAT
     println!("--> EchoEvtDeviceSelfManagedIoInit");
 
     unsafe {
-        queue = macros::call_unsafe_wdf_function_binding!(WdfDeviceGetDefaultQueue, device);
+        queue = call_unsafe_wdf_function_binding!(WdfDeviceGetDefaultQueue, device);
     };
 
     let queue_context = unsafe { queue_get_context(queue as WDFOBJECT) };
 
     // Restart the queue and the periodic timer. We stopped them before going
     // into low power state.
-    let [()] = [unsafe { macros::call_unsafe_wdf_function_binding!(WdfIoQueueStart, queue) }];
+    let [()] = [unsafe { call_unsafe_wdf_function_binding!(WdfIoQueueStart, queue) }];
 
     let due_time: i64 = -(100) * (10000);
 
@@ -199,12 +199,11 @@ unsafe extern "C" fn echo_evt_device_self_managed_io_suspend(device: WDFDEVICE) 
     // with outstanding I/O. In this sample we will use the 1st approach
     // because it's pretty easy to do. We will restart the queue when the
     // device is restarted.
-    let queue =
-        unsafe { macros::call_unsafe_wdf_function_binding!(WdfDeviceGetDefaultQueue, device) };
+    let queue = unsafe { call_unsafe_wdf_function_binding!(WdfDeviceGetDefaultQueue, device) };
     let queue_context = unsafe { queue_get_context(queue as WDFOBJECT) };
 
     unsafe {
-        let [()] = [macros::call_unsafe_wdf_function_binding!(
+        let [()] = [call_unsafe_wdf_function_binding!(
             WdfIoQueueStopSynchronously,
             queue
         )];

@@ -3,24 +3,7 @@
 
 use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
-    macros,
-    ntddk::KeGetCurrentIrql,
-    APC_LEVEL,
-    DRIVER_OBJECT,
-    NTSTATUS,
-    PCUNICODE_STRING,
-    PDRIVER_OBJECT,
-    PWDFDEVICE_INIT,
-    STATUS_SUCCESS,
-    ULONG,
-    UNICODE_STRING,
-    WDFDRIVER,
-    WDFOBJECT,
-    WDFSTRING,
-    WDF_DRIVER_CONFIG,
-    WDF_DRIVER_VERSION_AVAILABLE_PARAMS,
-    WDF_NO_HANDLE,
-    WDF_NO_OBJECT_ATTRIBUTES,
+    call_unsafe_wdf_function_binding, ntddk::KeGetCurrentIrql, APC_LEVEL, DRIVER_OBJECT, NTSTATUS, PCUNICODE_STRING, PDRIVER_OBJECT, PWDFDEVICE_INIT, STATUS_SUCCESS, ULONG, UNICODE_STRING, WDFDRIVER, WDFOBJECT, WDFSTRING, WDF_DRIVER_CONFIG, WDF_DRIVER_VERSION_AVAILABLE_PARAMS, WDF_NO_HANDLE, WDF_NO_OBJECT_ATTRIBUTES
 };
 
 use crate::device;
@@ -62,7 +45,7 @@ extern "system" fn driver_entry(
     let driver_handle_output = WDF_NO_HANDLE.cast::<WDFDRIVER>();
 
     let nt_status = unsafe {
-        macros::call_unsafe_wdf_function_binding!(
+        call_unsafe_wdf_function_binding!(
             WdfDriverCreate,
             driver as PDRIVER_OBJECT,
             registry_path,
@@ -127,7 +110,7 @@ fn echo_print_driver_version() -> NTSTATUS {
     let mut string: WDFSTRING = core::ptr::null_mut();
     let mut us: UNICODE_STRING = UNICODE_STRING::default();
     let mut nt_status = unsafe {
-        macros::call_unsafe_wdf_function_binding!(
+        call_unsafe_wdf_function_binding!(
             WdfStringCreate,
             core::ptr::null_mut(),
             WDF_NO_OBJECT_ATTRIBUTES,
@@ -139,10 +122,9 @@ fn echo_print_driver_version() -> NTSTATUS {
         return nt_status;
     }
 
-    // driver = unsafe{macros::call_unsafe_wdf_function_binding!(WdfGetDriver)};
     let driver = unsafe { (*wdk_sys::WdfDriverGlobals).Driver };
     nt_status = unsafe {
-        macros::call_unsafe_wdf_function_binding!(WdfDriverRetrieveVersionString, driver, string)
+        call_unsafe_wdf_function_binding!(WdfDriverRetrieveVersionString, driver, string)
     };
     if !nt_success(nt_status) {
         // No need to worry about delete the string object because
@@ -155,7 +137,7 @@ fn echo_print_driver_version() -> NTSTATUS {
     }
 
     let [()] = [unsafe {
-        macros::call_unsafe_wdf_function_binding!(WdfStringGetUnicodeString, string, &mut us);
+        call_unsafe_wdf_function_binding!(WdfStringGetUnicodeString, string, &mut us);
     }];
     let driver_version = String::from_utf16_lossy(unsafe {
         slice::from_raw_parts(
@@ -166,7 +148,7 @@ fn echo_print_driver_version() -> NTSTATUS {
     println!("Echo Sample {driver_version}");
 
     let [()] = [unsafe {
-        macros::call_unsafe_wdf_function_binding!(WdfObjectDelete, string as WDFOBJECT);
+        call_unsafe_wdf_function_binding!(WdfObjectDelete, string as WDFOBJECT);
     }];
     // string = core::ptr::null_mut();
 
@@ -178,9 +160,8 @@ fn echo_print_driver_version() -> NTSTATUS {
         MinorVersion: 0,
     };
 
-    if unsafe {
-        macros::call_unsafe_wdf_function_binding!(WdfDriverIsVersionAvailable, driver, &mut ver)
-    } > 0
+    if unsafe { call_unsafe_wdf_function_binding!(WdfDriverIsVersionAvailable, driver, &mut ver) }
+        > 0
     {
         println!("Yes, framework version is 1.0");
     } else {

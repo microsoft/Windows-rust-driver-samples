@@ -48,7 +48,7 @@ macro_rules! wdf_declare_context_type_with_name {
 
             pub unsafe fn $casting_function(handle: WDFOBJECT) -> [<WDFPointerType$context_type>] {
                 unsafe {
-                    macros::call_unsafe_wdf_function_binding!(
+                    call_unsafe_wdf_function_binding!(
                         WdfObjectGetTypedContextWorker,
                         handle,
                         crate::wdf_object_context::wdf_get_context_type_info!($context_type),

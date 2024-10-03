@@ -1,4 +1,7 @@
-extend = [ { path =  "target/rust-driver-makefile.toml" }, { path = "target/rust-driver-sample-makefile.toml" } ]
+extend = [
+  { path = "target/rust-driver-makefile.toml" },
+  { path = "target/rust-driver-sample-makefile.toml" },
+]
 
 [env]
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
@@ -15,8 +18,3 @@ load_script = '''
 wdk_build::cargo_make::load_rust_driver_makefile()?;
 wdk_build::cargo_make::load_rust_driver_sample_makefile()?
 '''
-
-[tasks.default]
-# Since this worspace contains both driver and non-driver crates, we need to explicitly specify `build` so that non-driver crates are still compiled
-clear = true
-dependencies = ["build", "package-driver-flow"]
