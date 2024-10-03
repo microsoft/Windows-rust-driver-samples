@@ -3,7 +3,24 @@
 
 use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
-    call_unsafe_wdf_function_binding, ntddk::KeGetCurrentIrql, APC_LEVEL, DRIVER_OBJECT, NTSTATUS, PCUNICODE_STRING, PDRIVER_OBJECT, PWDFDEVICE_INIT, STATUS_SUCCESS, ULONG, UNICODE_STRING, WDFDRIVER, WDFOBJECT, WDFSTRING, WDF_DRIVER_CONFIG, WDF_DRIVER_VERSION_AVAILABLE_PARAMS, WDF_NO_HANDLE, WDF_NO_OBJECT_ATTRIBUTES
+    call_unsafe_wdf_function_binding,
+    ntddk::KeGetCurrentIrql,
+    APC_LEVEL,
+    DRIVER_OBJECT,
+    NTSTATUS,
+    PCUNICODE_STRING,
+    PDRIVER_OBJECT,
+    PWDFDEVICE_INIT,
+    STATUS_SUCCESS,
+    ULONG,
+    UNICODE_STRING,
+    WDFDRIVER,
+    WDFOBJECT,
+    WDFSTRING,
+    WDF_DRIVER_CONFIG,
+    WDF_DRIVER_VERSION_AVAILABLE_PARAMS,
+    WDF_NO_HANDLE,
+    WDF_NO_OBJECT_ATTRIBUTES,
 };
 
 use crate::device;
@@ -136,9 +153,9 @@ fn echo_print_driver_version() -> NTSTATUS {
         return nt_status;
     }
 
-    let [()] = [unsafe {
+    unsafe {
         call_unsafe_wdf_function_binding!(WdfStringGetUnicodeString, string, &mut us);
-    }];
+    };
     let driver_version = String::from_utf16_lossy(unsafe {
         slice::from_raw_parts(
             us.Buffer,
@@ -147,9 +164,9 @@ fn echo_print_driver_version() -> NTSTATUS {
     });
     println!("Echo Sample {driver_version}");
 
-    let [()] = [unsafe {
+    unsafe {
         call_unsafe_wdf_function_binding!(WdfObjectDelete, string as WDFOBJECT);
-    }];
+    };
     // string = core::ptr::null_mut();
 
     // 2) Find out to which version of framework this driver is bound to.

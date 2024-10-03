@@ -325,14 +325,14 @@ extern "C" fn echo_evt_request_cancel(request: WDFREQUEST) {
 
     // Complete the request outside of holding any locks
     if complete_request {
-        let [()] = [unsafe {
+        unsafe {
             call_unsafe_wdf_function_binding!(
                 WdfRequestCompleteWithInformation,
                 request,
                 STATUS_CANCELLED,
                 0
             );
-        }];
+        }
     }
 }
 
@@ -386,12 +386,12 @@ fn echo_set_current_request(request: WDFREQUEST, queue: WDFQUEUE) {
     unsafe {
         // Complete the request with an error when unable to mark it cancelable.
         if !nt_success(status) {
-            let [()] = [call_unsafe_wdf_function_binding!(
+            call_unsafe_wdf_function_binding!(
                 WdfRequestCompleteWithInformation,
                 request,
                 status,
                 0
-            )];
+            );
         }
     }
 }
@@ -427,12 +427,12 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
     // No data to read
     unsafe {
         if (*queue_context).buffer.is_null() {
-            let [()] = [call_unsafe_wdf_function_binding!(
+            call_unsafe_wdf_function_binding!(
                 WdfRequestCompleteWithInformation,
                 request,
                 STATUS_SUCCESS,
                 0,
-            )];
+            );
             return;
         }
     }
@@ -451,12 +451,12 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
 
         if !nt_success(nt_status) {
             println!("echo_evt_io_read Could not get request memory buffer {nt_status:#010X}");
-            let [()] = [call_unsafe_wdf_function_binding!(
+            call_unsafe_wdf_function_binding!(
                 WdfRequestCompleteWithInformation,
                 request,
                 nt_status,
                 0
-            )];
+            );
             return;
         }
     }
@@ -473,11 +473,7 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
 
         if !nt_success(nt_status) {
             println!("echo_evt_io_read: WdfMemoryCopyFromBuffer failed {nt_status:#010X}");
-            let [()] = [call_unsafe_wdf_function_binding!(
-                WdfRequestComplete,
-                request,
-                nt_status
-            )];
+            call_unsafe_wdf_function_binding!(WdfRequestComplete, request, nt_status);
             return;
         }
     }
@@ -528,18 +524,18 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
     );
 
     if length > MAX_WRITE_LENGTH {
-        let [()] = [unsafe {
-            println!(
-                "echo_evt_io_write Buffer Length to big {:?}, Max is {:?}",
-                length, MAX_WRITE_LENGTH
-            );
+        println!(
+            "echo_evt_io_write Buffer Length to big {:?}, Max is {:?}",
+            length, MAX_WRITE_LENGTH
+        );
+        unsafe {
             call_unsafe_wdf_function_binding!(
                 WdfRequestCompleteWithInformation,
                 request,
                 STATUS_BUFFER_OVERFLOW,
                 0
             );
-        }];
+        }
     }
 
     // Get the memory buffer
@@ -548,11 +544,7 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
             call_unsafe_wdf_function_binding!(WdfRequestRetrieveInputMemory, request, &mut memory);
         if !nt_success(status) {
             println!("echo_evt_io_write Could not get request memory buffer {status:#010X}");
-            let [()] = [call_unsafe_wdf_function_binding!(
-                WdfRequestComplete,
-                request,
-                status
-            )];
+            call_unsafe_wdf_function_binding!(WdfRequestComplete, request, status);
             return;
         }
     }
@@ -573,11 +565,11 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
                 "echo_evt_io_write Could not allocate {:?} byte buffer",
                 length
             );
-            let [()] = [call_unsafe_wdf_function_binding!(
+            call_unsafe_wdf_function_binding!(
                 WdfRequestComplete,
                 request,
                 STATUS_INSUFFICIENT_RESOURCES
-            )];
+            );
             return;
         }
     }
@@ -597,11 +589,7 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
             ExFreePool((*queue_context).buffer);
             (*queue_context).buffer = core::ptr::null_mut();
             (*queue_context).length = 0;
-            let [()] = [call_unsafe_wdf_function_binding!(
-                WdfRequestComplete,
-                request,
-                status
-            )];
+            call_unsafe_wdf_function_binding!(WdfRequestComplete, request, status);
             return;
         }
 
@@ -610,11 +598,7 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
 
     // Set transfer information
     unsafe {
-        let [()] = [call_unsafe_wdf_function_binding!(
-            WdfRequestSetInformation,
-            request,
-            length as u64
-        )];
+        call_unsafe_wdf_function_binding!(WdfRequestSetInformation, request, length as u64);
     }
 
     // Mark the request is cancelable.  This must be the last thing we do because
@@ -732,11 +716,7 @@ unsafe extern "C" fn echo_evt_timer_func(timer: WDFTIMER) {
         unsafe { (*queue_context).spin_lock.release() };
 
         unsafe {
-            let [()] = [call_unsafe_wdf_function_binding!(
-                WdfRequestComplete,
-                request,
-                status
-            )];
+            call_unsafe_wdf_function_binding!(WdfRequestComplete, request, status);
         }
     }
 }

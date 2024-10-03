@@ -59,13 +59,13 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
 
     // Register the PnP and power callbacks. Power policy related callbacks will be
     // registered later in SotwareInit.
-    let [()] = [unsafe {
+    unsafe {
         call_unsafe_wdf_function_binding!(
             WdfDeviceInitSetPnpPowerEventCallbacks,
             device_init,
             &mut pnp_power_callbacks
         );
-    }];
+    };
 
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
         Size: core::mem::size_of::<WDF_OBJECT_ATTRIBUTES>() as ULONG,
@@ -75,13 +75,13 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
         ..WDF_OBJECT_ATTRIBUTES::default()
     };
 
-    let [()] = [unsafe {
+    unsafe {
         call_unsafe_wdf_function_binding!(
             WdfDeviceInitSetRequestAttributes,
             device_init,
             &mut attributes
         );
-    }];
+    };
 
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
         Size: core::mem::size_of::<WDF_OBJECT_ATTRIBUTES>() as ULONG,
@@ -161,7 +161,7 @@ extern "C" fn echo_evt_device_self_managed_io_start(device: WDFDEVICE) -> NTSTAT
 
     // Restart the queue and the periodic timer. We stopped them before going
     // into low power state.
-    let [()] = [unsafe { call_unsafe_wdf_function_binding!(WdfIoQueueStart, queue) }];
+    unsafe { call_unsafe_wdf_function_binding!(WdfIoQueueStart, queue) };
 
     let due_time: i64 = -(100) * (10000);
 
@@ -203,10 +203,7 @@ unsafe extern "C" fn echo_evt_device_self_managed_io_suspend(device: WDFDEVICE) 
     let queue_context = unsafe { queue_get_context(queue as WDFOBJECT) };
 
     unsafe {
-        let [()] = [call_unsafe_wdf_function_binding!(
-            WdfIoQueueStopSynchronously,
-            queue
-        )];
+        call_unsafe_wdf_function_binding!(WdfIoQueueStopSynchronously, queue);
         // Stop the watchdog timer and wait for DPC to run to completion if it's already
         // fired.
         let _ = (*queue_context).timer.stop(true);
