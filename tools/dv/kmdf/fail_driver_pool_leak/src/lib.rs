@@ -17,7 +17,6 @@
 //! session, the bug can be analyzed further.
 
 #![no_std]
-#![cfg_attr(feature = "nightly", feature(hint_must_use))]
 #![deny(clippy::all)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::nursery)]
@@ -29,11 +28,11 @@
 extern crate wdk_panic;
 
 #[cfg(not(test))]
-use wdk_alloc::WDKAllocator;
+use wdk_alloc::WdkAllocator;
 
 #[cfg(not(test))]
 #[global_allocator]
-static GLOBAL_ALLOCATOR: WDKAllocator = WDKAllocator;
+static GLOBAL_ALLOCATOR: WdkAllocator = WdkAllocator;
 
 use wdk_sys::{GUID, PVOID};
 

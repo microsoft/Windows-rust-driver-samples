@@ -7,9 +7,12 @@ repository.workspace = true
 license.workspace = true
 
 [package.metadata.wdk]
+# Using workspace wdk config
 
 [lib]
 crate-type = ["cdylib"]
+# Tests from root driver crates must be excluded since there's no way to prevent linker args from being passed to their unit tests: https://github.com/rust-lang/cargo/issues/12663
+test = false
 
 [dependencies]
 wdk.workspace = true
@@ -18,6 +21,7 @@ wdk-panic.workspace = true
 wdk-sys.workspace = true
 
 [build-dependencies]
+anyhow.workspace = true
 wdk-build.workspace = true
 
 [features]
