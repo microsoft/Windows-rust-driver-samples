@@ -81,4 +81,4 @@ jobs:
           tool: cargo-make
 
       - name: Build and Package Sample Drivers
-        run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple }}
+        run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple }} --env RUSTFLAGS="${{ env.RUSTFLAGS }}"
