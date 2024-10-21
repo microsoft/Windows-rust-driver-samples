@@ -5,7 +5,7 @@ use core::sync::atomic::Ordering;
 
 use wdk::{nt_success, paged_code, println, wdf};
 use wdk_sys::{
-    macros,
+    call_unsafe_wdf_function_binding,
     ntddk::{ExAllocatePool2, ExFreePool, KeGetCurrentIrql},
     APC_LEVEL,
     NTSTATUS,
@@ -158,7 +158,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
 
     // Create queue.
     let nt_status = unsafe {
-        macros::call_unsafe_wdf_function_binding!(
+        call_unsafe_wdf_function_binding!(
             WdfIoQueueCreate,
             device,
             &mut queue_config,
@@ -299,7 +299,7 @@ fn echo_increment_request_cancel_ownership_count(request_context: *mut RequestCo
 ///
 /// * `VOID`
 extern "C" fn echo_evt_request_cancel(request: WDFREQUEST) {
-    let queue = unsafe { macros::call_unsafe_wdf_function_binding!(WdfRequestGetIoQueue, request) };
+    let queue = unsafe { call_unsafe_wdf_function_binding!(WdfRequestGetIoQueue, request) };
     let queue_context = unsafe { queue_get_context(queue as WDFOBJECT) };
     let request_context = unsafe { request_get_context(request as WDFOBJECT) };
 
@@ -325,14 +325,14 @@ extern "C" fn echo_evt_request_cancel(request: WDFREQUEST) {
 
     // Complete the request outside of holding any locks
     if complete_request {
-        let [()] = [unsafe {
-            macros::call_unsafe_wdf_function_binding!(
+        unsafe {
+            call_unsafe_wdf_function_binding!(
                 WdfRequestCompleteWithInformation,
                 request,
                 STATUS_CANCELLED,
                 0
             );
-        }];
+        }
     }
 }
 
@@ -371,7 +371,7 @@ fn echo_set_current_request(request: WDFREQUEST, queue: WDFQUEUE) {
     // WdfRequestMarkCancelableEx here to prevent to deadlock with ourselves
     // (cancel routine tries to acquire the queue object lock).
     unsafe {
-        status = macros::call_unsafe_wdf_function_binding!(
+        status = call_unsafe_wdf_function_binding!(
             WdfRequestMarkCancelableEx,
             request,
             Some(echo_evt_request_cancel)
@@ -386,12 +386,12 @@ fn echo_set_current_request(request: WDFREQUEST, queue: WDFQUEUE) {
     unsafe {
         // Complete the request with an error when unable to mark it cancelable.
         if !nt_success(status) {
-            let [()] = [macros::call_unsafe_wdf_function_binding!(
+            call_unsafe_wdf_function_binding!(
                 WdfRequestCompleteWithInformation,
                 request,
                 status,
                 0
-            )];
+            );
         }
     }
 }
@@ -427,12 +427,12 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
     // No data to read
     unsafe {
         if (*queue_context).buffer.is_null() {
-            let [()] = [macros::call_unsafe_wdf_function_binding!(
+            call_unsafe_wdf_function_binding!(
                 WdfRequestCompleteWithInformation,
                 request,
                 STATUS_SUCCESS,
                 0,
-            )];
+            );
             return;
         }
     }
@@ -446,27 +446,24 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
 
     // Get the request memory
     unsafe {
-        nt_status = macros::call_unsafe_wdf_function_binding!(
-            WdfRequestRetrieveOutputMemory,
-            request,
-            &mut memory
-        );
+        nt_status =
+            call_unsafe_wdf_function_binding!(WdfRequestRetrieveOutputMemory, request, &mut memory);
 
         if !nt_success(nt_status) {
             println!("echo_evt_io_read Could not get request memory buffer {nt_status:#010X}");
-            let [()] = [macros::call_unsafe_wdf_function_binding!(
+            call_unsafe_wdf_function_binding!(
                 WdfRequestCompleteWithInformation,
                 request,
                 nt_status,
                 0
-            )];
+            );
             return;
         }
     }
 
     // Copy the memory out
     unsafe {
-        nt_status = macros::call_unsafe_wdf_function_binding!(
+        nt_status = call_unsafe_wdf_function_binding!(
             WdfMemoryCopyFromBuffer,
             memory,
             0,
@@ -476,18 +473,14 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
 
         if !nt_success(nt_status) {
             println!("echo_evt_io_read: WdfMemoryCopyFromBuffer failed {nt_status:#010X}");
-            let [()] = [macros::call_unsafe_wdf_function_binding!(
-                WdfRequestComplete,
-                request,
-                nt_status
-            )];
+            call_unsafe_wdf_function_binding!(WdfRequestComplete, request, nt_status);
             return;
         }
     }
 
     // Set transfer information
     let [()] = unsafe {
-        [macros::call_unsafe_wdf_function_binding!(
+        [call_unsafe_wdf_function_binding!(
             WdfRequestSetInformation,
             request,
             length as u64
@@ -531,34 +524,27 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
     );
 
     if length > MAX_WRITE_LENGTH {
-        let [()] = [unsafe {
-            println!(
-                "echo_evt_io_write Buffer Length to big {:?}, Max is {:?}",
-                length, MAX_WRITE_LENGTH
-            );
-            macros::call_unsafe_wdf_function_binding!(
+        println!(
+            "echo_evt_io_write Buffer Length to big {:?}, Max is {:?}",
+            length, MAX_WRITE_LENGTH
+        );
+        unsafe {
+            call_unsafe_wdf_function_binding!(
                 WdfRequestCompleteWithInformation,
                 request,
                 STATUS_BUFFER_OVERFLOW,
                 0
             );
-        }];
+        }
     }
 
     // Get the memory buffer
     unsafe {
-        status = macros::call_unsafe_wdf_function_binding!(
-            WdfRequestRetrieveInputMemory,
-            request,
-            &mut memory
-        );
+        status =
+            call_unsafe_wdf_function_binding!(WdfRequestRetrieveInputMemory, request, &mut memory);
         if !nt_success(status) {
             println!("echo_evt_io_write Could not get request memory buffer {status:#010X}");
-            let [()] = [macros::call_unsafe_wdf_function_binding!(
-                WdfRequestComplete,
-                request,
-                status
-            )];
+            call_unsafe_wdf_function_binding!(WdfRequestComplete, request, status);
             return;
         }
     }
@@ -579,18 +565,18 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
                 "echo_evt_io_write Could not allocate {:?} byte buffer",
                 length
             );
-            let [()] = [macros::call_unsafe_wdf_function_binding!(
+            call_unsafe_wdf_function_binding!(
                 WdfRequestComplete,
                 request,
                 STATUS_INSUFFICIENT_RESOURCES
-            )];
+            );
             return;
         }
     }
 
     // Copy the memory in
     unsafe {
-        status = macros::call_unsafe_wdf_function_binding!(
+        status = call_unsafe_wdf_function_binding!(
             WdfMemoryCopyToBuffer,
             memory,
             0,
@@ -603,11 +589,7 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
             ExFreePool((*queue_context).buffer);
             (*queue_context).buffer = core::ptr::null_mut();
             (*queue_context).length = 0;
-            let [()] = [macros::call_unsafe_wdf_function_binding!(
-                WdfRequestComplete,
-                request,
-                status
-            )];
+            call_unsafe_wdf_function_binding!(WdfRequestComplete, request, status);
             return;
         }
 
@@ -616,11 +598,7 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
 
     // Set transfer information
     unsafe {
-        let [()] = [macros::call_unsafe_wdf_function_binding!(
-            WdfRequestSetInformation,
-            request,
-            length as u64
-        )];
+        call_unsafe_wdf_function_binding!(WdfRequestSetInformation, request, length as u64);
     }
 
     // Mark the request is cancelable.  This must be the last thing we do because
@@ -653,8 +631,7 @@ unsafe extern "C" fn echo_evt_timer_func(timer: WDFTIMER) {
     let request: WDFREQUEST;
     let mut request_context: *mut RequestContext = core::ptr::null_mut();
     unsafe {
-        queue =
-            macros::call_unsafe_wdf_function_binding!(WdfTimerGetParentObject, timer,) as WDFQUEUE;
+        queue = call_unsafe_wdf_function_binding!(WdfTimerGetParentObject, timer,) as WDFQUEUE;
     }
     let queue_context = unsafe { queue_get_context(queue as WDFOBJECT) };
 
@@ -687,7 +664,7 @@ unsafe extern "C" fn echo_evt_timer_func(timer: WDFTIMER) {
     // The request handle and requestContext are valid until we release
     // the cancel ownership count we already acquired.
     unsafe {
-        status = macros::call_unsafe_wdf_function_binding!(WdfRequestUnmarkCancelable, request,);
+        status = call_unsafe_wdf_function_binding!(WdfRequestUnmarkCancelable, request,);
         if status != STATUS_CANCELLED {
             println!(
                 "CustomTimerDPC successfully cleared cancel routine on request {:?}, status {:?}",
@@ -739,11 +716,7 @@ unsafe extern "C" fn echo_evt_timer_func(timer: WDFTIMER) {
         unsafe { (*queue_context).spin_lock.release() };
 
         unsafe {
-            let [()] = [macros::call_unsafe_wdf_function_binding!(
-                WdfRequestComplete,
-                request,
-                status
-            )];
+            call_unsafe_wdf_function_binding!(WdfRequestComplete, request, status);
         }
     }
 }
