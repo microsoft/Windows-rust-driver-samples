@@ -74,7 +74,7 @@ dependencies = [
  "bitflags",
  "cexpr",
  "clang-sys",
- "itertools",
+ "itertools 0.12.1",
  "lazy_static",
  "lazycell",
  "log",
@@ -124,6 +124,15 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+]
+
+[[package]]
+name = "cc"
+version = "1.1.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9540e661f81799159abee814118cc139a2004b3a3aa3ea37724a1b66530b90e0"
+dependencies = [
+ "shlex",
 ]
 
 [[package]]
@@ -212,6 +221,7 @@ checksum = "acbf1af155f9b9ef647e42cdc158db4b64a1b61f743629225fde6f3e0be2a7c7"
 name = "echo-2"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "paste",
  "wdk",
  "wdk-alloc",
@@ -260,6 +270,7 @@ dependencies = [
 name = "fail_driver_pool_leak"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "wdk",
  "wdk-alloc",
  "wdk-build",
@@ -293,6 +304,15 @@ name = "itertools"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
 dependencies = [
  "either",
 ]
@@ -635,7 +655,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3523ab5a71916ccf420eebdf5521fcef02141234bbc0b8a49f2fdc4544364ef"
 dependencies = [
  "pin-project-lite",
+ "tracing-attributes",
  "tracing-core",
+]
+
+[[package]]
+name = "tracing-attributes"
+version = "0.1.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34704c8d6ebcbc939824180af020566b01a7c01f80641264eba0999f6c2b6be7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -717,47 +749,58 @@ checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
 
 [[package]]
 name = "wdk"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e255fa09cb7395c5f9b8c72831347c9b77aa51fc66c3f44eb5d097a44122e9f"
+checksum = "c80cc00b5c587d3a43f489350a797a258eefca5ab0bb5d0d5b56d4ce09ab42f2"
 dependencies = [
+ "tracing",
+ "tracing-subscriber",
  "wdk-build",
  "wdk-sys",
 ]
 
 [[package]]
 name = "wdk-alloc"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00c3180aa54fa2e30ecfd52a9e40210e634c09f760658cf8793ef0bf2ee7d917"
+checksum = "5dd1c139c6b9c05475bc7e8b356d4fbc252954d685691d70cfaec8b42c41b72d"
 dependencies = [
+ "tracing",
+ "tracing-subscriber",
+ "wdk-build",
  "wdk-sys",
 ]
 
 [[package]]
 name = "wdk-build"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78da0616ae3b04f9488d250e8b087b7b332e7f1f18b4c7bcedebf7aea6231594"
+checksum = "4b276786d848e5ab00e021968e89cfdc591938b69741a3733e7e3d91b23f547f"
 dependencies = [
+ "anyhow",
  "bindgen",
+ "camino",
  "cargo_metadata",
+ "cfg-if",
  "clap",
  "clap-cargo",
+ "lazy_static",
+ "paste",
  "rustversion",
  "serde",
  "serde_json",
  "thiserror",
+ "tracing",
  "windows",
 ]
 
 [[package]]
 name = "wdk-macros"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65a27743e45f2bacdc8a778482a52ea2fda527bdac95bad5086cee080441b2da"
+checksum = "56f069b2e89e5a3327e84bc2f672f7f35d94059da590666d7d605f33f2ae2fa3"
 dependencies = [
- "cfg-if",
+ "itertools 0.13.0",
  "proc-macro2",
  "quote",
  "syn",
@@ -765,21 +808,25 @@ dependencies = [
 
 [[package]]
 name = "wdk-panic"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f56558972c0d7069aa3b2b409752e65db7ba3fd24fcffc3887d19b6e48585e4"
+checksum = "6ba15dc2294f5c87df4b30218d93fb459ac8484a45683d4ad06fc0243e58736c"
 
 [[package]]
 name = "wdk-sys"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36c6fbc666a0535164ebbb16cff321ee2cac38636aa6b9f1712148388f401087"
+checksum = "10f974829a3b0b362723d55f0d05d8f1715bb7a88297558c4127f69d85bbff7e"
 dependencies = [
  "anyhow",
  "bindgen",
+ "cargo_metadata",
+ "cc",
  "lazy_static",
  "rustversion",
+ "serde_json",
  "thiserror",
+ "tracing",
  "tracing-subscriber",
  "wdk-build",
  "wdk-macros",
@@ -821,9 +868,9 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "windows"
-version = "0.52.0"
+version = "0.58.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e48a53791691ab099e5e2ad123536d0fff50652600abaf43bbf952894110d0be"
+checksum = "dd04d41d93c4992d421894c18c8b43496aa748dd4c081bac0dc93eb0489272b6"
 dependencies = [
  "windows-core",
  "windows-targets 0.52.6",
@@ -831,10 +878,55 @@ dependencies = [
 
 [[package]]
 name = "windows-core"
-version = "0.52.0"
+version = "0.58.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33ab640c8d7e35bf8ba19b884ba838ceb4fba93a4e8c65a9059d08afcfc683d9"
+checksum = "6ba6d44ec8c2591c134257ce647b7ea6b20335bf6379a27dac5f1641fcf59f99"
 dependencies = [
+ "windows-implement",
+ "windows-interface",
+ "windows-result",
+ "windows-strings",
+ "windows-targets 0.52.6",
+]
+
+[[package]]
+name = "windows-implement"
+version = "0.58.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bbd5b46c938e506ecbce286b6628a02171d56153ba733b6c741fc627ec9579b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "windows-interface"
+version = "0.58.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "053c4c462dc91d3b1504c6fe5a726dd15e216ba718e84a0e46a88fbe5ded3515"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "windows-result"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d1043d8214f791817bab27572aaa8af63732e11bf84aa21a45a78d6c317ae0e"
+dependencies = [
+ "windows-targets 0.52.6",
+]
+
+[[package]]
+name = "windows-strings"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4cd9b125c486025df0eabcb585e62173c6c9eddcec5d117d3b6e8c30e2ee4d10"
+dependencies = [
+ "windows-result",
  "windows-targets 0.52.6",
 ]
 

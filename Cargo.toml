@@ -13,17 +13,23 @@ publish = false
 repository = "https://github.com/microsoft/windows-rust-driver-samples"
 license = "MIT OR Apache-2.0"
 
+[workspace.metadata.wdk.driver-model]
+driver-type = "KMDF"
+kmdf-version-major = 1
+target-kmdf-version-minor = 33
+
 [profile.dev]
 panic = "abort"
-lto = true
 
 [profile.release]
 panic = "abort"
 lto = true
 
 [workspace.dependencies]
-wdk = "0.2.0"
-wdk-alloc = "0.2.0"
-wdk-build = "0.2.0"
-wdk-panic = "0.2.0"
-wdk-sys = "0.2.0"
+anyhow = "1.0.89"
+paste = "1.0.14"
+wdk = "0.3.0"
+wdk-alloc = "0.3.0"
+wdk-build = "0.3.0"
+wdk-panic = "0.3.0"
+wdk-sys = "0.3.0"
