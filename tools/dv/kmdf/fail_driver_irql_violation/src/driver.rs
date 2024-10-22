@@ -3,7 +3,7 @@
 
 use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
-    macros,
+    call_unsafe_wdf_function_binding,
     ntddk::{ExAllocatePool2, ExFreePool, KeEnterCriticalRegion, KeGetCurrentIrql},
     APC_LEVEL,
     DRIVER_OBJECT,
@@ -80,7 +80,7 @@ extern "system" fn driver_entry(
     let driver_handle_output = WDF_NO_HANDLE.cast::<WDFDRIVER>();
 
     let nt_status = unsafe {
-        macros::call_unsafe_wdf_function_binding!(
+        call_unsafe_wdf_function_binding!(
             WdfDriverCreate,
             driver as PDRIVER_OBJECT,
             registry_path,
@@ -143,7 +143,7 @@ extern "C" fn evt_driver_device_add(
     };
 
     let [()] = [unsafe {
-        macros::call_unsafe_wdf_function_binding!(
+        call_unsafe_wdf_function_binding!(
             WdfDeviceInitSetPnpPowerEventCallbacks,
             device_init,
             &mut pnp_power_callbacks
@@ -160,7 +160,7 @@ extern "C" fn evt_driver_device_add(
 
     let mut device = WDF_NO_HANDLE as WDFDEVICE;
     let mut nt_status = unsafe {
-        macros::call_unsafe_wdf_function_binding!(
+        call_unsafe_wdf_function_binding!(
             WdfDeviceCreate,
             &mut device_init,
             &mut attributes,
@@ -174,7 +174,7 @@ extern "C" fn evt_driver_device_add(
     }
 
     nt_status = unsafe {
-        macros::call_unsafe_wdf_function_binding!(
+        call_unsafe_wdf_function_binding!(
             WdfDeviceCreateDeviceInterface,
             device,
             &GUID_DEVINTERFACE,
