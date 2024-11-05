@@ -90,13 +90,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         } else {
             eprintln!(
-                r##"
+                r"
 Usage:
     Echoapp.exe         --- Send single write and read request synchronously
     Echoapp.exe -Async  --- Send reads and writes asynchronously without terminating
     Echoapp.exe -Async <number> --- Send <number> reads and writes asynchronously
 Exit the app anytime by pressing Ctrl-C
-"##
+"
             );
             return Err("Invalid Args".into());
         }
