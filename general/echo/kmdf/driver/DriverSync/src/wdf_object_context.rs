@@ -13,7 +13,7 @@ impl WDFObjectContextTypeInfo {
     }
 
     pub const fn get_unique_type(&self) -> PCWDF_OBJECT_CONTEXT_TYPE_INFO {
-        let inner = (self as *const Self).cast::<WDF_OBJECT_CONTEXT_TYPE_INFO>();
+        let inner = core::ptr::from_ref::<Self>(self).cast::<WDF_OBJECT_CONTEXT_TYPE_INFO>();
         // SAFETY: This dereference is sound since the underlying
         // WDF_OBJECT_CONTEXT_TYPE_INFO is guaranteed to have the same memory
         // layout as WDFObjectContextTypeInfo since WDFObjectContextTypeInfo is
