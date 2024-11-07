@@ -16,7 +16,6 @@ use wdk_sys::{
     STATUS_INSUFFICIENT_RESOURCES,
     STATUS_INVALID_DEVICE_REQUEST,
     STATUS_SUCCESS,
-    ULONG,
     WDFDEVICE,
     WDFMEMORY,
     WDFOBJECT,
@@ -40,7 +39,10 @@ use crate::{
     AtomicI32,
     QueueContext,
     RequestContext,
+    WDF_IO_QUEUE_CONFIG_SIZE,
+    WDF_OBJECT_ATTRIBUTES_SIZE,
     WDF_QUEUE_CONTEXT_TYPE_INFO,
+    WDF_TIMER_CONFIG_SIZE,
 };
 
 /// Set max write length for testing
@@ -129,15 +131,15 @@ fn echo_interlocked_increment_gtzero(target: &AtomicI32) -> i32 {
 /// * `NTSTATUS`
 #[link_section = "PAGE"]
 pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
-    let mut queue = WDF_NO_HANDLE as WDFQUEUE;
-
     paged_code!();
+
+    let mut queue = WDF_NO_HANDLE as WDFQUEUE;
 
     // Configure a default queue so that requests that are not
     // configure-fowarded using WdfDeviceConfigureRequestDispatching to goto
     // other queues get dispatched here.
     let mut queue_config = WDF_IO_QUEUE_CONFIG {
-        Size: core::mem::size_of::<WDF_IO_QUEUE_CONFIG>() as ULONG,
+        Size: WDF_IO_QUEUE_CONFIG_SIZE,
         PowerManaged: _WDF_TRI_STATE::WdfUseDefault,
         DefaultQueue: u8::from(true),
         DispatchType: _WDF_IO_QUEUE_DISPATCH_TYPE::WdfIoQueueDispatchSequential,
@@ -148,7 +150,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
 
     // Fill in a callback for destroy, and our QUEUE_CONTEXT size
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
-        Size: core::mem::size_of::<WDF_OBJECT_ATTRIBUTES>() as ULONG,
+        Size: WDF_OBJECT_ATTRIBUTES_SIZE,
         ExecutionLevel: _WDF_EXECUTION_LEVEL::WdfExecutionLevelInheritFromParent,
         SynchronizationScope: _WDF_SYNCHRONIZATION_SCOPE::WdfSynchronizationScopeInheritFromParent,
         ContextTypeInfo: wdf_get_context_type_info!(QueueContext),
@@ -182,7 +184,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
 
     // Create the SpinLock.
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
-        Size: core::mem::size_of::<WDF_OBJECT_ATTRIBUTES>() as ULONG,
+        Size: WDF_OBJECT_ATTRIBUTES_SIZE,
         ExecutionLevel: _WDF_EXECUTION_LEVEL::WdfExecutionLevelInheritFromParent,
         SynchronizationScope: _WDF_SYNCHRONIZATION_SCOPE::WdfSynchronizationScopeInheritFromParent,
         ParentObject: queue as WDFOBJECT,
@@ -203,7 +205,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
     // WdfIoQueueCreate, we are explicitly *not* serializing against the queue's
     // lock. Instead, we will do that on our own.
     let mut timer_config = WDF_TIMER_CONFIG {
-        Size: core::mem::size_of::<WDF_TIMER_CONFIG>() as ULONG,
+        Size: WDF_TIMER_CONFIG_SIZE,
         EvtTimerFunc: Some(echo_evt_timer_func),
         Period: TIMER_PERIOD,
         AutomaticSerialization: u8::from(true),
@@ -665,7 +667,22 @@ unsafe extern "C" fn echo_evt_timer_func(timer: WDFTIMER) {
     // the cancel ownership count we already acquired.
     unsafe {
         status = call_unsafe_wdf_function_binding!(WdfRequestUnmarkCancelable, request,);
-        if status != STATUS_CANCELLED {
+        if status == STATUS_CANCELLED {
+            complete_request = echo_decrement_request_cancel_ownership_count(request_context);
+
+            if complete_request {
+                println!(
+                    "CustomTimerDPC Request {:?} is STATUS_CANCELLED, but claimed completion \
+                     ownership",
+                    request
+                );
+            } else {
+                println!(
+                    "CustomTimerDPC Request {:?} is STATUS_CANCELLED, not completing",
+                    request
+                );
+            }
+        } else {
             println!(
                 "CustomTimerDPC successfully cleared cancel routine on request {:?}, status {:?}",
                 request, status
@@ -682,21 +699,6 @@ unsafe extern "C" fn echo_evt_timer_func(timer: WDFTIMER) {
                 .cancel_completion_ownership_count
                 .fetch_sub(2, Ordering::SeqCst);
             complete_request = true;
-        } else {
-            complete_request = echo_decrement_request_cancel_ownership_count(request_context);
-
-            if complete_request {
-                println!(
-                    "CustomTimerDPC Request {:?} is STATUS_CANCELLED, but claimed completion \
-                     ownership",
-                    request
-                );
-            } else {
-                println!(
-                    "CustomTimerDPC Request {:?} is STATUS_CANCELLED, not completing",
-                    request
-                );
-            }
         }
     }
 

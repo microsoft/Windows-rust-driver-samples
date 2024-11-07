@@ -12,7 +12,6 @@ use wdk_sys::{
     PDRIVER_OBJECT,
     PWDFDEVICE_INIT,
     STATUS_SUCCESS,
-    ULONG,
     UNICODE_STRING,
     WDFDRIVER,
     WDFOBJECT,
@@ -23,7 +22,7 @@ use wdk_sys::{
     WDF_NO_OBJECT_ATTRIBUTES,
 };
 
-use crate::device;
+use crate::{device, WDF_DRIVER_CONFIG_SIZE, WDF_DRIVER_VERSION_AVAILABLE_PARAMS_SIZE};
 
 extern crate alloc;
 
@@ -55,7 +54,7 @@ extern "system" fn driver_entry(
     registry_path: PCUNICODE_STRING,
 ) -> NTSTATUS {
     let mut driver_config = WDF_DRIVER_CONFIG {
-        Size: core::mem::size_of::<WDF_DRIVER_CONFIG>() as ULONG,
+        Size: WDF_DRIVER_CONFIG_SIZE,
         EvtDriverDeviceAdd: Some(echo_evt_device_add),
         ..WDF_DRIVER_CONFIG::default()
     };
@@ -167,12 +166,11 @@ fn echo_print_driver_version() -> NTSTATUS {
     unsafe {
         call_unsafe_wdf_function_binding!(WdfObjectDelete, string as WDFOBJECT);
     };
-    // string = core::ptr::null_mut();
 
     // 2) Find out to which version of framework this driver is bound to.
     //
     let mut ver = WDF_DRIVER_VERSION_AVAILABLE_PARAMS {
-        Size: core::mem::size_of::<WDF_DRIVER_VERSION_AVAILABLE_PARAMS>() as ULONG,
+        Size: WDF_DRIVER_VERSION_AVAILABLE_PARAMS_SIZE,
         MajorVersion: 1,
         MinorVersion: 0,
     };
