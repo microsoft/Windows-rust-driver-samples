@@ -7,7 +7,6 @@ use wdk_sys::{
     APC_LEVEL,
     NTSTATUS,
     STATUS_SUCCESS,
-    ULONG,
     WDFDEVICE,
     WDFDEVICE_INIT,
     WDFOBJECT,
@@ -28,6 +27,8 @@ use crate::{
     KeGetCurrentIrql,
     GUID_DEVINTERFACE_ECHO,
     WDF_DEVICE_CONTEXT_TYPE_INFO,
+    WDF_OBJECT_ATTRIBUTES_SIZE,
+    WDF_PNPPOWER_EVENT_CALLBACKS_SIZE,
     WDF_REQUEST_CONTEXT_TYPE_INFO,
 };
 
@@ -49,7 +50,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
     // Register pnp/power callbacks so that we can start and stop the timer as the
     // device gets started and stopped.
     let mut pnp_power_callbacks = WDF_PNPPOWER_EVENT_CALLBACKS {
-        Size: core::mem::size_of::<WDF_PNPPOWER_EVENT_CALLBACKS>() as ULONG,
+        Size: WDF_PNPPOWER_EVENT_CALLBACKS_SIZE,
         EvtDeviceSelfManagedIoInit: Some(echo_evt_device_self_managed_io_start),
         EvtDeviceSelfManagedIoSuspend: Some(echo_evt_device_self_managed_io_suspend),
         // Function used for both Init and Restart Callbacks
@@ -68,7 +69,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
     };
 
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
-        Size: core::mem::size_of::<WDF_OBJECT_ATTRIBUTES>() as ULONG,
+        Size: WDF_OBJECT_ATTRIBUTES_SIZE,
         ExecutionLevel: _WDF_EXECUTION_LEVEL::WdfExecutionLevelInheritFromParent,
         SynchronizationScope: _WDF_SYNCHRONIZATION_SCOPE::WdfSynchronizationScopeInheritFromParent,
         ContextTypeInfo: wdf_get_context_type_info!(RequestContext),
@@ -84,7 +85,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
     };
 
     let mut attributes = WDF_OBJECT_ATTRIBUTES {
-        Size: core::mem::size_of::<WDF_OBJECT_ATTRIBUTES>() as ULONG,
+        Size: WDF_OBJECT_ATTRIBUTES_SIZE,
         ExecutionLevel: _WDF_EXECUTION_LEVEL::WdfExecutionLevelInheritFromParent,
         SynchronizationScope: _WDF_SYNCHRONIZATION_SCOPE::WdfSynchronizationScopeInheritFromParent,
         ContextTypeInfo: wdf_get_context_type_info!(DeviceContext),
@@ -95,7 +96,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
     let mut nt_status = unsafe {
         call_unsafe_wdf_function_binding!(
             WdfDeviceCreate,
-            (core::ptr::addr_of_mut!(device_init)) as *mut *mut WDFDEVICE_INIT,
+            (core::ptr::addr_of_mut!(device_init)).cast(),
             &mut attributes,
             &mut device,
         )

@@ -54,7 +54,13 @@ use wdk_sys::{
     ULONG,
     WDFOBJECT,
     WDFREQUEST,
+    WDF_DRIVER_CONFIG,
+    WDF_DRIVER_VERSION_AVAILABLE_PARAMS,
+    WDF_IO_QUEUE_CONFIG,
+    WDF_OBJECT_ATTRIBUTES,
     WDF_OBJECT_CONTEXT_TYPE_INFO,
+    WDF_PNPPOWER_EVENT_CALLBACKS,
+    WDF_TIMER_CONFIG,
 };
 mod wdf_object_context;
 use core::sync::atomic::AtomicI32;
@@ -100,3 +106,114 @@ pub struct RequestContext {
     cancel_completion_ownership_count: AtomicI32,
 }
 wdf_declare_context_type_with_name!(RequestContext, request_get_context);
+
+// None of the below SIZE constants should be needed after an equivalent `WDF_STRUCTURE_SIZE` macro is added to `wdk-sys`: https://github.com/microsoft/windows-drivers-rs/issues/242
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "size_of::<WDF_DRIVER_CONFIG>() is known to fit in ULONG due to below const assert"
+)]
+const WDF_DRIVER_CONFIG_SIZE: ULONG = {
+    const S: usize = core::mem::size_of::<WDF_DRIVER_CONFIG>();
+    const {
+        assert!(
+            S <= ULONG::MAX as usize,
+            "size_of::<WDF_DRIVER_CONFIG>() should fit in ULONG"
+        );
+    };
+    S as ULONG
+};
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "size_of::<WDF_DRIVER_VERSION_AVAILABLE_PARAMS>() is known to fit in ULONG due to \
+              below const assert"
+)]
+const WDF_DRIVER_VERSION_AVAILABLE_PARAMS_SIZE: ULONG = {
+    const S: usize = core::mem::size_of::<WDF_DRIVER_VERSION_AVAILABLE_PARAMS>();
+    const {
+        assert!(
+            S <= ULONG::MAX as usize,
+            "size_of::<WDF_DRIVER_VERSION_AVAILABLE_PARAMS>() should fit in ULONG"
+        );
+    };
+    S as ULONG
+};
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "size_of::<WDF_IO_QUEUE_CONFIG>() is known to fit in ULONG due to below const assert"
+)]
+const WDF_IO_QUEUE_CONFIG_SIZE: ULONG = {
+    const S: usize = core::mem::size_of::<WDF_IO_QUEUE_CONFIG>();
+    const {
+        assert!(
+            S <= ULONG::MAX as usize,
+            "size_of::<WDF_IO_QUEUE_CONFIG>() should fit in ULONG"
+        );
+    };
+    S as ULONG
+};
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "size_of::<WDF_OBJECT_ATTRIBUTES>() is known to fit in ULONG due to below const \
+              assert"
+)]
+const WDF_OBJECT_ATTRIBUTES_SIZE: ULONG = {
+    const S: usize = core::mem::size_of::<WDF_OBJECT_ATTRIBUTES>();
+    const {
+        assert!(
+            S <= ULONG::MAX as usize,
+            "size_of::<WDF_OBJECT_ATTRIBUTES>() should fit in ULONG"
+        );
+    };
+    S as ULONG
+};
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "size_of::<WDF_OBJECT_CONTEXT_TYPE_INFO>() is known to fit in ULONG due to below \
+              const assert"
+)]
+const WDF_OBJECT_CONTEXT_TYPE_INFO_SIZE: ULONG = {
+    const S: usize = core::mem::size_of::<WDF_OBJECT_CONTEXT_TYPE_INFO>();
+    const {
+        assert!(
+            S <= ULONG::MAX as usize,
+            "size_of::<WDF_OBJECT_CONTEXT_TYPE_INFO>() should fit in ULONG"
+        );
+    };
+    S as ULONG
+};
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "size_of::<WDF_PNPPOWER_EVENT_CALLBACKS>() is known to fit in ULONG due to below \
+              const assert"
+)]
+const WDF_PNPPOWER_EVENT_CALLBACKS_SIZE: ULONG = {
+    const S: usize = core::mem::size_of::<WDF_PNPPOWER_EVENT_CALLBACKS>();
+    const {
+        assert!(
+            S <= ULONG::MAX as usize,
+            "size_of::<WDF_PNPPOWER_EVENT_CALLBACKS>() should fit in ULONG"
+        );
+    };
+    S as ULONG
+};
+
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "size_of::<WDF_TIMER_CONFIG>() is known to fit in ULONG due to below const assert"
+)]
+const WDF_TIMER_CONFIG_SIZE: ULONG = {
+    const S: usize = core::mem::size_of::<WDF_TIMER_CONFIG>();
+    const {
+        assert!(
+            S <= ULONG::MAX as usize,
+            "size_of::<WDF_TIMER_CONFIG>() should fit in ULONG"
+        );
+    };
+    S as ULONG
+};
