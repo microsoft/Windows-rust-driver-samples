@@ -197,7 +197,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
             return status;
         }
         Ok(spin_lock) => unsafe { (*queue_context).spin_lock = spin_lock },
-    };
+    }
 
     // Create the Queue timer
     //
@@ -219,7 +219,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
             return status;
         }
         Ok(wdftimer) => unsafe { (*queue_context).timer = wdftimer },
-    };
+    }
 
     STATUS_SUCCESS
 }
