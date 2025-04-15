@@ -37,6 +37,10 @@ jobs:
           - x86_64-pc-windows-msvc
           - aarch64-pc-windows-msvc
 
+        target_arch:
+          - x64
+          - arm64
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -82,3 +86,10 @@ jobs:
 
       - name: Build and Package Sample Drivers
         run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple }}
+
+      # Steps to use cargo-wdk to build and package drivers
+      - name: Install cargo-wdk binary
+        run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/svasista-ms/windows-drivers-rs.git cargo-wdk --branch integrate-cargo-wdk --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple }} --force
+
+      - name: Build and Package Sample Drivers in the workspace with cargo-wdk
+        run: cargo +${{ matrix.rust_toolchain }} wdk build --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_arch }}
