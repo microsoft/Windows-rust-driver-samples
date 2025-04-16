@@ -34,12 +34,10 @@ jobs:
           - release
 
         target_triple:
-          - x86_64-pc-windows-msvc
-          - aarch64-pc-windows-msvc
-
-        target_arch:
-          - x64
-          - arm64
+          - name: x86_64-pc-windows-msvc
+            arch: x64
+          - name: aarch64-pc-windows-msvc
+            arch: arm64
 
     steps:
       - name: Checkout Repository
@@ -74,19 +72,19 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust_toolchain }}
-          targets: ${{ matrix.target_triple }}
+          targets: ${{ matrix.target_triple.name }}
 
       - name: Run Cargo Build
-        run: cargo +${{ matrix.rust_toolchain }} build --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple }} --workspace
+        run: cargo +${{ matrix.rust_toolchain }} build --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }} --workspace
 
       # Steps to use cargo-wdk to build and package drivers (skipping for arm64 as the base runner image is x86_64)
       - name: Install cargo-wdk binary
-        if: ${{ matrix.target_arch != 'arm64' }}
-        run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/svasista-ms/windows-drivers-rs.git cargo-wdk --branch integrate-cargo-wdk --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple }} --force
+        if: ${{ matrix.target_triple.arch != 'arm64' }}
+        run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/svasista-ms/windows-drivers-rs.git cargo-wdk --branch integrate-cargo-wdk --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }} --force
 
       - name: Build and Package Sample Drivers in the workspace with cargo-wdk
-        if: ${{ matrix.target_arch != 'arm64' }}
-        run: cargo +${{ matrix.rust_toolchain }} wdk build --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_arch }}
+        if: ${{ matrix.target_triple.arch != 'arm64' }}
+        run: cargo +${{ matrix.rust_toolchain }} wdk build --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
 
       # Steps to use cargo-make to build and package drivers
       - name: Install Cargo Make
@@ -95,4 +93,4 @@ jobs:
           tool: cargo-make
 
       - name: Build and Package Sample Drivers
-        run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple }}
+        run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }}
