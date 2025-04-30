@@ -4,8 +4,6 @@
 use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
     call_unsafe_wdf_function_binding,
-    ntddk::KeGetCurrentIrql,
-    APC_LEVEL,
     DRIVER_OBJECT,
     NTSTATUS,
     PCUNICODE_STRING,
@@ -66,7 +64,7 @@ extern "system" fn driver_entry(
             driver as PDRIVER_OBJECT,
             registry_path,
             WDF_NO_OBJECT_ATTRIBUTES,
-            &mut driver_config,
+            &raw mut driver_config,
             driver_handle_output,
         )
     };
@@ -130,7 +128,7 @@ fn echo_print_driver_version() -> NTSTATUS {
             WdfStringCreate,
             core::ptr::null_mut(),
             WDF_NO_OBJECT_ATTRIBUTES,
-            &mut string
+            &raw mut string
         )
     };
     if !nt_success(nt_status) {
@@ -153,7 +151,7 @@ fn echo_print_driver_version() -> NTSTATUS {
     }
 
     unsafe {
-        call_unsafe_wdf_function_binding!(WdfStringGetUnicodeString, string, &mut us);
+        call_unsafe_wdf_function_binding!(WdfStringGetUnicodeString, string, &raw mut us);
     };
     let driver_version = String::from_utf16_lossy(unsafe {
         slice::from_raw_parts(
@@ -175,7 +173,7 @@ fn echo_print_driver_version() -> NTSTATUS {
         MinorVersion: 0,
     };
 
-    if unsafe { call_unsafe_wdf_function_binding!(WdfDriverIsVersionAvailable, driver, &mut ver) }
+    if unsafe { call_unsafe_wdf_function_binding!(WdfDriverIsVersionAvailable, driver, &raw mut ver) }
         > 0
     {
         println!("Yes, framework version is 1.0");

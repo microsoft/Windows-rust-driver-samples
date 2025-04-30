@@ -6,8 +6,7 @@ use core::sync::atomic::Ordering;
 use wdk::{nt_success, paged_code, println, wdf};
 use wdk_sys::{
     call_unsafe_wdf_function_binding,
-    ntddk::{ExAllocatePool2, ExFreePool, KeGetCurrentIrql},
-    APC_LEVEL,
+    ntddk::{ExAllocatePool2, ExFreePool},
     NTSTATUS,
     POOL_FLAG_NON_PAGED,
     SIZE_T,
@@ -163,9 +162,9 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
         call_unsafe_wdf_function_binding!(
             WdfIoQueueCreate,
             device,
-            &mut queue_config,
-            &mut attributes,
-            &mut queue
+            &raw mut queue_config,
+            &raw mut attributes,
+            &raw mut queue
         )
     };
 
@@ -449,7 +448,7 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
     // Get the request memory
     unsafe {
         nt_status =
-            call_unsafe_wdf_function_binding!(WdfRequestRetrieveOutputMemory, request, &mut memory);
+            call_unsafe_wdf_function_binding!(WdfRequestRetrieveOutputMemory, request, &raw mut memory);
 
         if !nt_success(nt_status) {
             println!("echo_evt_io_read Could not get request memory buffer {nt_status:#010X}");
@@ -543,7 +542,7 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
     // Get the memory buffer
     unsafe {
         status =
-            call_unsafe_wdf_function_binding!(WdfRequestRetrieveInputMemory, request, &mut memory);
+            call_unsafe_wdf_function_binding!(WdfRequestRetrieveInputMemory, request, &raw mut memory);
         if !nt_success(status) {
             println!("echo_evt_io_write Could not get request memory buffer {status:#010X}");
             call_unsafe_wdf_function_binding!(WdfRequestComplete, request, status);
