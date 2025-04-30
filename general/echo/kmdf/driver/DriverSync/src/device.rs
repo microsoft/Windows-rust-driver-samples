@@ -4,7 +4,6 @@
 use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
     call_unsafe_wdf_function_binding,
-    APC_LEVEL,
     NTSTATUS,
     STATUS_SUCCESS,
     WDFDEVICE,
@@ -24,7 +23,6 @@ use crate::{
     wdf_object_context::wdf_get_context_type_info,
     wdf_object_get_device_context,
     DeviceContext,
-    KeGetCurrentIrql,
     GUID_DEVINTERFACE_ECHO,
     WDF_DEVICE_CONTEXT_TYPE_INFO,
     WDF_OBJECT_ATTRIBUTES_SIZE,
@@ -64,7 +62,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
         call_unsafe_wdf_function_binding!(
             WdfDeviceInitSetPnpPowerEventCallbacks,
             device_init,
-            &mut pnp_power_callbacks
+            &raw mut pnp_power_callbacks
         );
     };
 
@@ -80,7 +78,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
         call_unsafe_wdf_function_binding!(
             WdfDeviceInitSetRequestAttributes,
             device_init,
-            &mut attributes
+            &raw mut attributes
         );
     };
 
@@ -97,8 +95,8 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
         call_unsafe_wdf_function_binding!(
             WdfDeviceCreate,
             (core::ptr::addr_of_mut!(device_init)).cast(),
-            &mut attributes,
-            &mut device,
+            &raw mut attributes,
+            &raw mut device,
         )
     };
 

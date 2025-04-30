@@ -47,7 +47,6 @@ use wdk::wdf;
 use wdk_alloc::WdkAllocator;
 use wdk_sys::{
     call_unsafe_wdf_function_binding,
-    ntddk::KeGetCurrentIrql,
     GUID,
     NTSTATUS,
     PVOID,
