@@ -36,7 +36,7 @@ jobs:
 
         target_triple:
           - name: x86_64-pc-windows-msvc
-            arch: x64
+            arch: amd64
           - name: aarch64-pc-windows-msvc
             arch: arm64
 
