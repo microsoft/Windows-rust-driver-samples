@@ -78,14 +78,6 @@ jobs:
       - name: Run Cargo Build
         run: cargo +${{ matrix.rust_toolchain }} build --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }} --workspace
 
-      # Steps to use cargo-wdk to build and package drivers (skipping for arm64 as the base runner image is x86_64)
-      - name: Install cargo-wdk binary
-        run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/svasista-ms/windows-drivers-rs.git cargo-wdk --branch integrate-cargo-wdk --locked --force --profile ${{matrix.cargo_profile}}
-
-      - name: Build and Package Sample Drivers in the workspace with cargo-wdk
-        run: cargo +${{ matrix.rust_toolchain }} wdk build --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
-        continue-on-error: true # cargo-wdk build fails for a known reason
-
       # Steps to use cargo-make to build and package drivers
       - name: Install Cargo Make
         uses: taiki-e/install-action@v2
@@ -94,3 +86,11 @@ jobs:
 
       - name: Build and Package Sample Drivers
         run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }}
+
+      # Steps to use cargo-wdk to build and package drivers (skipping for arm64 as the base runner image is x86_64)
+      - name: Install cargo-wdk binary
+        run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/svasista-ms/windows-drivers-rs.git cargo-wdk --branch integrate-cargo-wdk --locked --force --profile ${{matrix.cargo_profile}}
+
+      - name: Build and Package Sample Drivers in the workspace with cargo-wdk
+        run: cargo +${{ matrix.rust_toolchain }} wdk build --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
+        continue-on-error: true # cargo-wdk build fails for a known reason
