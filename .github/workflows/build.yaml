@@ -16,8 +16,8 @@ jobs:
   build:
     name: Build
     runs-on: windows-latest
-    continue-on-error: true # Since remaining jobs are just cancelled on one job failure, we could allow them to finish and report the errors
     strategy:
+      fail-fast: false # Allow all matrix variants to complete even if some fail
       matrix:
         wdk:
           - Microsoft.WindowsWDK.10.0.22621 # NI WDK
@@ -87,10 +87,10 @@ jobs:
       - name: Build and Package Sample Drivers
         run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }}
 
-      # Steps to use cargo-wdk to build and package drivers (skipping for arm64 as the base runner image is x86_64)
+      # Steps to use cargo-wdk to build and package drivers (uses cargo-wdk at specific commit https://github.com/microsoft/windows-drivers-rs/commit/5b9aa0a14e385daf5217c0f5232bcd4d3f4780a6)
       - name: Install cargo-wdk binary
-        run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/svasista-ms/windows-drivers-rs.git cargo-wdk --branch integrate-cargo-wdk --locked --force --profile ${{matrix.cargo_profile}}
+        run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/microsoft/windows-drivers-rs.git cargo-wdk --branch main --rev 5b9aa0a14e385daf5217c0f5232bcd4d3f4780a6 --locked --force
 
-      - name: Build and Package Sample Drivers in the workspace with cargo-wdk
+      - name: Build and Package Sample Drivers with cargo-wdk
         run: cargo +${{ matrix.rust_toolchain }} wdk build --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
         continue-on-error: true # cargo-wdk build fails for a known reason
