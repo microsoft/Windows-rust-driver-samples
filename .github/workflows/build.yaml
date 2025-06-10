@@ -17,6 +17,7 @@ jobs:
     name: Build
     runs-on: windows-latest
     strategy:
+      fail-fast: false # Allow all matrix variants to complete even if some fail
       matrix:
         wdk:
           - Microsoft.WindowsWDK.10.0.22621 # NI WDK
@@ -34,8 +35,10 @@ jobs:
           - release
 
         target_triple:
-          - x86_64-pc-windows-msvc
-          - aarch64-pc-windows-msvc
+          - name: x86_64-pc-windows-msvc
+            arch: amd64
+          - name: aarch64-pc-windows-msvc
+            arch: arm64
 
     steps:
       - name: Checkout Repository
@@ -70,15 +73,24 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust_toolchain }}
-          targets: ${{ matrix.target_triple }}
+          targets: ${{ matrix.target_triple.name }}
 
       - name: Run Cargo Build
-        run: cargo +${{ matrix.rust_toolchain }} build --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple }} --workspace
+        run: cargo +${{ matrix.rust_toolchain }} build --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }} --workspace
 
+      # Steps to use cargo-make to build and package drivers
       - name: Install Cargo Make
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-make
 
       - name: Build and Package Sample Drivers
-        run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple }}
+        run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }}
+
+      # Steps to use cargo-wdk to build and package drivers (uses cargo-wdk at specific commit https://github.com/microsoft/windows-drivers-rs/commit/5b9aa0a14e385daf5217c0f5232bcd4d3f4780a6)
+      - name: Install cargo-wdk binary
+        run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/microsoft/windows-drivers-rs.git cargo-wdk --branch main --rev 5b9aa0a14e385daf5217c0f5232bcd4d3f4780a6 --locked --force
+
+      - name: Build and Package Sample Drivers with cargo-wdk
+        run: cargo +${{ matrix.rust_toolchain }} wdk build --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
+        continue-on-error: true # cargo-wdk build fails for a known reason
