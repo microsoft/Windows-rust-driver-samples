@@ -1,14 +1,8 @@
 # Fail_Driver_Pool_Leak Sample Driver
 
-This sample KMDF Fail Driver is designed to demonstrate the capabilities and features of **Driver Verifier** and the **Device Fundamentals Tests** for a driver written in Rust. 
+The `fail_driver_pool_leak` sample demonstrates running the [Device Fundamentals Tests](https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/device-fundamentals-tests) and enabling the [Driver Verifier](https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/driver-verifier) for a Rust driver. We have intentionally injected a pool leak fault in the driver by allocating a global buffer using WDM's `ExAllocatePool2` function and not freeing this buffer (using `ExFreePool`) anywhere in the driver. This fault, which is not caught at compile time, can be detected by running the Device Fundamentals Tests and also by enabling the Driver Verifier on the driver.
 
-The driver allocates a pool of memory to a global buffer in its `evt_driver_device_add` function when a supported device is added by the PnP Manager. The driver intentionally does not free it anywhere, even in the `evt_driver_unload` callback, which get called before the driver is unloaded. This memory leak fault is a system vulnerability that could lead to security and performance issues and ultimately a bad user experience. 
-
-By enabling Driver Verifier on a driver, such violations can be caught and mitigated early in the development cycle. With an active KDNET session, the bugcheck can be analyzed further using WinDbg. The steps listed below demonstrate how to build, deploy, enable Driver Verifier, run Device Fundamentals Tests and debug the driver.
-
-NOTE: The driver uses WDM's ExAllocatePool2 API directly to allocate memory for its buffer. Ideally, such allocations should be freed by using ExFreePool API. A cleaner way to manage memory in a WDF Driver is to use [wdfmemory](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdfmemory/)
-
-## Steps to reproduce the issue
+## Steps
 
 1. Clone the repository and navigate to the project root.
 
@@ -91,9 +85,8 @@ NOTE: The driver uses WDM's ExAllocatePool2 API directly to allocate memory for 
 
 ### References
 
-- [Driver Verifier](https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/driver-verifier)
-- [Device Fundamentals Tests](https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/device-fundamentals-tests)
 - [TAEF](https://learn.microsoft.com/en-us/windows-hardware/drivers/taef/getting-started)
 - [WDTF](https://learn.microsoft.com/en-us/windows-hardware/drivers/wdtf/wdtf-runtime-library)
 - [Testing a driver at runtime](https://learn.microsoft.com/en-us/windows-hardware/drivers/develop/how-to-test-a-driver-at-runtime-from-a-command-prompt)
 - [Using WDF to Develop a Driver](https://learn.microsoft.com/en-us/windows-hardware/drivers/wdf/using-the-framework-to-develop-a-driver)
+- [wdfmemory](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdfmemory/)
