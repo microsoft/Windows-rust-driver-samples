@@ -77,7 +77,7 @@ jobs:
         if: matrix.rust_toolchain == 'nightly'
         run: cargo +${{ matrix.rust_toolchain }} clippy --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple }} --all-targets --features nightly -- -D warnings
 
-  udeps:
+  machete:
     name: Detect Unused Cargo Dependencies
     runs-on: windows-latest
     strategy:
@@ -104,17 +104,13 @@ jobs:
             Install-WinGetPackage -Id ${{ matrix.wdk }} -Source winget -MatchOption Equals -Mode Silent -Force
           }
 
-      - name: Install Rust Toolchain (Nightly)
-        # Cargo udeps only supports running on nightly due to reliance on unstable dep-info feature: https://github.com/est31/cargo-udeps/issues/113, https://github.com/est31/cargo-udeps/issues/136
-        uses: dtolnay/rust-toolchain@nightly
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Cargo Udeps
+      - name: Install Cargo Machete
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-udeps@0.1.48
+          tool: cargo-machete
 
-      - name: Run Cargo Udeps
-        run: cargo +nightly udeps --locked --all-targets
-
-      - name: Run Cargo Udeps (--features nightly)
-        run: cargo +nightly udeps --locked --all-targets --features nightly
+      - name: Run Cargo Machete
+        run: cargo machete

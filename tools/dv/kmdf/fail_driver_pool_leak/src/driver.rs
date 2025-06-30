@@ -4,8 +4,7 @@
 use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
     call_unsafe_wdf_function_binding,
-    ntddk::{ExAllocatePool2, KeGetCurrentIrql},
-    APC_LEVEL,
+    ntddk::ExAllocatePool2,
     DRIVER_OBJECT,
     NTSTATUS,
     PCUNICODE_STRING,
@@ -84,7 +83,7 @@ extern "system" fn driver_entry(
             driver as PDRIVER_OBJECT,
             registry_path,
             WDF_NO_OBJECT_ATTRIBUTES,
-            &mut driver_config,
+            &raw mut driver_config,
             driver_handle_output,
         )
     };
@@ -133,9 +132,9 @@ extern "C" fn evt_driver_device_add(
     let mut nt_status = unsafe {
         call_unsafe_wdf_function_binding!(
             WdfDeviceCreate,
-            &mut device_init,
-            &mut attributes,
-            &mut device,
+            &raw mut device_init,
+            &raw mut attributes,
+            &raw mut device,
         )
     };
 
