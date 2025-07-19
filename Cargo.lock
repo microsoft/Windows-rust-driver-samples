@@ -253,6 +253,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "fail_driver_irql_violation"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wdk",
+ "wdk-alloc",
+ "wdk-build",
+ "wdk-panic",
+ "wdk-sys",
+]
+
+[[package]]
 name = "fail_driver_pool_leak"
 version = "0.1.0"
 dependencies = [

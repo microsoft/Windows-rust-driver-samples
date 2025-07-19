@@ -2,6 +2,7 @@
 members = [
   "general/echo/kmdf/driver/*",
   "general/echo/kmdf/exe",
+  "tools/dv/kmdf/fail_driver_irql_violation",
   "tools/dv/kmdf/fail_driver_pool_leak",
 ]
 resolver = "2"
