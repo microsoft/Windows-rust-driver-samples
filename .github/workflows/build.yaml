@@ -7,6 +7,10 @@ on:
 
 name: Build
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   RUSTFLAGS: >-
     -D warnings
