@@ -96,5 +96,4 @@ jobs:
         run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/microsoft/windows-drivers-rs.git cargo-wdk --branch main --rev 5b9aa0a14e385daf5217c0f5232bcd4d3f4780a6 --locked --force
 
       - name: Build and Package Sample Drivers with cargo-wdk
-        run: cargo +${{ matrix.rust_toolchain }} wdk build --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
-        continue-on-error: true # cargo-wdk build fails for a known reason
+        run: cargo +${{ matrix.rust_toolchain }} wdk build --sample --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
