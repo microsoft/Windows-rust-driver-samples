@@ -1,4 +1,5 @@
 name: Code Formatting Check
+
 on:
   push:
   pull_request:
@@ -6,6 +7,9 @@ on:
   schedule: # Trigger a job on default branch at 4AM PST everyday
     - cron: 0 11 * * *
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   cargo-fmt:
