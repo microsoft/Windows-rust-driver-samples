@@ -121,7 +121,7 @@ Exit the app anytime by pressing Ctrl-C
             std::ptr::null(),
             OPEN_EXISTING,
             0,
-            0,
+            std::ptr::null_mut(),
         );
     }
 
@@ -312,7 +312,7 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
             std::ptr::null(),
             OPEN_EXISTING,
             FILE_FLAG_OVERLAPPED,
-            0,
+            std::ptr::null_mut(),
         );
     }
 
@@ -334,11 +334,10 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
     // Call Win32 API FFI CreateIoCompletionPort to get handle for completing async
     // requests
     unsafe {
-        h_completion_port = CreateIoCompletionPort(h_device, 0, 1, 0);
+        h_completion_port = CreateIoCompletionPort(h_device, std::ptr::null_mut(), 1, 0);
     }
 
-    // CreateIoCompletionPort returns NULL on failure, not INVALID_HANDLE_VALUE
-    if h_completion_port == 0 {
+    if h_completion_port == std::ptr::null_mut() {
         return Err(format!(
             "Cannot open completion port {}",
             // SAFETY:
@@ -372,7 +371,7 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
             Anonymous: OVERLAPPED_0 {
                 Pointer: std::ptr::null_mut(),
             },
-            hEvent: 0,
+            hEvent: std::ptr::null_mut(),
         };
         max_pending_requests
     ];

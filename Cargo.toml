@@ -27,8 +27,15 @@ lto = true
 [workspace.dependencies]
 anyhow = "1.0.89"
 paste = "1.0.14"
-wdk = "0.3.1"
-wdk-alloc = "0.3.1"
-wdk-build = "0.4.0"
-wdk-panic = "0.3.1"
-wdk-sys = "0.4.0"
+wdk = "0.4.0"
+wdk-alloc = "0.4.0"
+wdk-build = "0.5.0"
+wdk-panic = "0.4.0"
+wdk-sys = "0.5.0"
+
+[patch.crates-io]
+wdk = { git = "https://github.com/microsoft/windows-drivers-rs.git" , branch = "release-plz-2025-11-06T01-55-28Z" }
+wdk-alloc = { git = "https://github.com/microsoft/windows-drivers-rs.git" , branch = "release-plz-2025-11-06T01-55-28Z" }
+wdk-build = { git = "https://github.com/microsoft/windows-drivers-rs.git" , branch = "release-plz-2025-11-06T01-55-28Z" }
+wdk-panic = { git = "https://github.com/microsoft/windows-drivers-rs.git" , branch = "release-plz-2025-11-06T01-55-28Z" }
+wdk-sys = { git = "https://github.com/microsoft/windows-drivers-rs.git" , branch = "release-plz-2025-11-06T01-55-28Z" }
