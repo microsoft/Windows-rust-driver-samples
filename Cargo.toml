@@ -32,10 +32,3 @@ wdk-alloc = "0.4.0"
 wdk-build = "0.5.0"
 wdk-panic = "0.4.0"
 wdk-sys = "0.5.0"
-
-[patch.crates-io]
-wdk = { git = "https://github.com/microsoft/windows-drivers-rs.git" , branch = "release-plz-2025-11-06T01-55-28Z" }
-wdk-alloc = { git = "https://github.com/microsoft/windows-drivers-rs.git" , branch = "release-plz-2025-11-06T01-55-28Z" }
-wdk-build = { git = "https://github.com/microsoft/windows-drivers-rs.git" , branch = "release-plz-2025-11-06T01-55-28Z" }
-wdk-panic = { git = "https://github.com/microsoft/windows-drivers-rs.git" , branch = "release-plz-2025-11-06T01-55-28Z" }
-wdk-sys = { git = "https://github.com/microsoft/windows-drivers-rs.git" , branch = "release-plz-2025-11-06T01-55-28Z" }

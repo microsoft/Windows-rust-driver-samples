@@ -99,7 +99,7 @@ jobs:
 
       # Steps to use cargo-wdk to build and package drivers (uses latest released version)
       - name: Install cargo-wdk binary
-        run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/microsoft/windows-drivers-rs.git cargo-wdk --branch main -locked --force
+        run: cargo +${{ matrix.rust_toolchain }} install cargo-wdk --locked --force
 
       - name: Build and Package Sample Drivers with cargo-wdk
         run: cargo +${{ matrix.rust_toolchain }} wdk build --sample --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
