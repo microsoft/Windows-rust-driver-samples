@@ -44,12 +44,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Checkout windows-drivers-rs
+      - name: Checkout windows-drivers-rs actions
         uses: actions/checkout@v4
         with:
           repository: microsoft/windows-drivers-rs
           ref: main
-          path: windows-drivers-rs
+          path: _temp/windows-drivers-rs
+          sparse-checkout: |
+            .github/actions
+          sparse-checkout-cone-mode: false
+
+      - name: Copy actions to workspace
+        shell: pwsh
+        run: Copy-Item -Recurse -Force _temp/windows-drivers-rs/.github/actions .github/
 
       - name: Install Winget
         uses: ./.github/actions/install-winget
