@@ -44,18 +44,29 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Checkout windows-drivers-rs
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/windows-drivers-rs
+          ref: main
+          path: windows-drivers-rs
+
       - name: Install Winget
-        uses: microsoft/windows-drivers-rs/.github/actions/install-winget@main
+        uses: ./windows-drivers-rs/.github/actions/install-winget
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install Winget PowerShell Module
+        shell: pwsh
+        run: Install-Module -Name Microsoft.WinGet.Client -Repository PSGallery -Force
+
       - name: Install LLVM ${{ matrix.llvm }}
-        uses: microsoft/windows-drivers-rs/.github/actions/install-llvm@main
+        uses: ./windows-drivers-rs/.github/actions/install-llvm
         with:
           version: ${{ matrix.llvm }}
 
       - name: Install WDK (${{ matrix.wdk }})
-        uses: microsoft/windows-drivers-rs/.github/actions/install-wdk@main
+        uses: ./windows-drivers-rs/.github/actions/install-wdk
         with:
           version: ${{ matrix.wdk }}
           source: winget
