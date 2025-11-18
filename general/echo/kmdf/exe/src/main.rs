@@ -5,9 +5,6 @@
 //! find a 1 to 1 mapping to the original C sample app code versus a full proper
 //! Rust implementation
 
-//! Idiomatic Rust wrappers for the Windows Driver Kit (WDK) APIs. This crate is
-//! built on top of the raw FFI bindings provided by [`wdk-sys`], and provides a
-//! safe, idiomatic rust interface to the WDK.
 #![deny(missing_docs)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::all)]
