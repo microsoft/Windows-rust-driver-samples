@@ -15,7 +15,7 @@ env:
 jobs:
   build:
     name: Build
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       fail-fast: false # Allow all matrix variants to complete even if some fail
       matrix:
@@ -52,7 +52,7 @@ jobs:
           path: windows-drivers-rs
 
       - name: Install Winget
-        uses: ./windows-drivers-rs/.github/actions/install-winget
+        uses: ./.github/actions/install-winget
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -61,12 +61,12 @@ jobs:
         run: Install-Module -Name Microsoft.WinGet.Client -Repository PSGallery -Force
 
       - name: Install LLVM ${{ matrix.llvm }}
-        uses: ./windows-drivers-rs/.github/actions/install-llvm
+        uses: ./.github/actions/install-llvm
         with:
           version: ${{ matrix.llvm }}
 
       - name: Install WDK (${{ matrix.wdk }})
-        uses: ./windows-drivers-rs/.github/actions/install-wdk
+        uses: ./.github/actions/install-wdk
         with:
           version: ${{ matrix.wdk }}
           source: winget

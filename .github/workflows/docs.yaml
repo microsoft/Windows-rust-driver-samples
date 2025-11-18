@@ -13,7 +13,7 @@ env:
 jobs:
   docs:
     name: Docs
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       matrix:
         wdk:
@@ -47,7 +47,7 @@ jobs:
           path: windows-drivers-rs
 
       - name: Install Winget
-        uses: ./windows-drivers-rs/.github/actions/install-winget
+        uses: ./.github/actions/install-winget
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
