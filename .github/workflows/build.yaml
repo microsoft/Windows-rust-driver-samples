@@ -20,7 +20,7 @@ jobs:
       fail-fast: false # Allow all matrix variants to complete even if some fail
       matrix:
         wdk:
-          - Microsoft.WindowsWDK.10.0.22621 # NI WDK
+          - 10.0.22621 # NI WDK
 
         llvm:
           - 17.0.6
