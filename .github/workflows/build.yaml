@@ -1,6 +1,7 @@
 on:
   push:
-  pull_request:
+  # Temporarily disable until new wdk-build version is ingested: https://github.com/microsoft/Windows-rust-driver-samples/pull/46
+  # pull_request:
   merge_group:
   schedule: # Trigger a job on default branch at 4AM PST everyday
     - cron: "0 11 * * *"
