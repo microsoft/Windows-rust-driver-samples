@@ -337,7 +337,7 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
         h_completion_port = CreateIoCompletionPort(h_device, std::ptr::null_mut(), 1, 0);
     }
 
-    if h_completion_port == std::ptr::null_mut() {
+    if h_completion_port.is_null() {
         return Err(format!(
             "Cannot open completion port {}",
             // SAFETY:
