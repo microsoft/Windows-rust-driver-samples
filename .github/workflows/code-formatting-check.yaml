@@ -6,11 +6,10 @@ on:
   schedule: # Trigger a job on default branch at 4AM PST everyday
     - cron: 0 11 * * *
 
-
 jobs:
   cargo-fmt:
     name: .rs Formatting Check
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     steps:
       - name: Checkout Repository
@@ -18,7 +17,7 @@ jobs:
 
       - name: Install Rust Toolchain (Nightly)
         uses: dtolnay/rust-toolchain@nightly
-        with: 
+        with:
           components: rustfmt
 
       - name: Run Cargo Format
@@ -26,7 +25,7 @@ jobs:
 
   taplo-fmt:
     name: .toml Formatting Check
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     steps:
       - name: Checkout Repository

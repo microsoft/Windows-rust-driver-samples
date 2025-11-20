@@ -5,9 +5,6 @@
 //! find a 1 to 1 mapping to the original C sample app code versus a full proper
 //! Rust implementation
 
-//! Idiomatic Rust wrappers for the Windows Driver Kit (WDK) APIs. This crate is
-//! built on top of the raw FFI bindings provided by [`wdk-sys`], and provides a
-//! safe, idiomatic rust interface to the WDK.
 #![deny(missing_docs)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::all)]
@@ -128,12 +125,17 @@ Exit the app anytime by pressing Ctrl-C
         );
     }
 
-    // SAFETY:
-    // Call Win32 API FFI GetLastError() to check for any errors
-    unsafe {
-        if h_device == INVALID_HANDLE_VALUE {
-            return Err(format!("Failed to open device. Error {}", GetLastError()).into());
-        }
+    if h_device == INVALID_HANDLE_VALUE {
+        return Err(format!(
+            "Failed to open device. Error {}",
+            // SAFETY:
+            // - FFI contract: Called immediately after CreateFileW failure before any intervening
+            //   Win32/CRT calls that would overwrite thread-local error slot
+            // - Concurrency: Reads thread-local storage only (no data races)
+            // - Memory safety: Returns u32 value (no pointer dereferences)
+            unsafe { GetLastError() }
+        )
+        .into());
     }
 
     println!("Opened device successfully");
@@ -207,16 +209,17 @@ fn perform_write_read_test(h_device: HANDLE, test_length: u32) -> Result<(), Box
         );
     }
 
-    // SAFETY:
-    // Call Win32 API FFI GetLastError() to check for any errors from WriteFile
-    unsafe {
-        if r == FALSE {
-            return Err(format!(
-                "PerformWriteReadTest: WriteFile failed: Error {}",
-                GetLastError()
-            )
-            .into());
-        }
+    if r == FALSE {
+        return Err(format!(
+            "PerformWriteReadTest: WriteFile failed: Error {}",
+            // SAFETY:
+            // - FFI contract: Called immediately after WriteFile failure before any intervening
+            //   Win32/CRT calls that would overwrite thread-local error slot
+            // - Concurrency: Reads thread-local storage only (no data races)
+            // - Memory safety: Returns u32 value (no pointer dereferences)
+            unsafe { GetLastError() }
+        )
+        .into());
     }
 
     if bytes_returned != test_length {
@@ -242,16 +245,17 @@ fn perform_write_read_test(h_device: HANDLE, test_length: u32) -> Result<(), Box
         );
     }
 
-    // SAFETY:
-    // Call Win32 API FFI GetLastError() to check for any errors from ReadFile
-    unsafe {
-        if r == FALSE {
-            return Err(format!(
-                "PerformWriteReadTest: ReadFile failed: Error {}",
-                GetLastError()
-            )
-            .into());
-        }
+    if r == FALSE {
+        return Err(format!(
+            "PerformWriteReadTest: ReadFile failed: Error {}",
+            // SAFETY:
+            // - FFI contract: Called immediately after ReadFile failure before any intervening
+            //   Win32/CRT calls that would overwrite thread-local error slot
+            // - Concurrency: Reads thread-local storage only (no data races)
+            // - Memory safety: Returns u32 value (no pointer dereferences)
+            unsafe { GetLastError() }
+        )
+        .into());
     }
 
     // SAFETY:
@@ -312,17 +316,18 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
         );
     }
 
-    // SAFETY:
-    // Call Win32 API FFI GetLastError() to check for any errors from CreateFileW
-    unsafe {
-        if h_device == INVALID_HANDLE_VALUE {
-            return Err(format!(
-                "Cannot open {} error {}",
-                globals.device_path,
-                GetLastError()
-            )
-            .into());
-        }
+    if h_device == INVALID_HANDLE_VALUE {
+        return Err(format!(
+            "Cannot open {} error {}",
+            globals.device_path,
+            // SAFETY:
+            // - FFI contract: Called immediately after CreateFileW failure before any intervening
+            //   Win32/CRT calls that would overwrite thread-local error slot
+            // - Concurrency: Reads thread-local storage only (no data races)
+            // - Memory safety: Returns u32 value (no pointer dereferences)
+            unsafe { GetLastError() }
+        )
+        .into());
     }
 
     // SAFETY:
@@ -332,14 +337,18 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
         h_completion_port = CreateIoCompletionPort(h_device, 0, 1, 0);
     }
 
-    // SAFETY:
-    // Call Win32 API FFI to check for CreateIoCompletionPort result from
-    // GetLastError()
-    unsafe {
-        // CreateIoCompletionPort returns NULL on failure, not INVALID_HANDLE_VALUE
-        if h_completion_port == 0 {
-            return Err(format!("Cannot open completion port {}", GetLastError()).into());
-        }
+    // CreateIoCompletionPort returns NULL on failure, not INVALID_HANDLE_VALUE
+    if h_completion_port == 0 {
+        return Err(format!(
+            "Cannot open completion port {}",
+            // SAFETY:
+            // - FFI contract: Called immediately after CreateIoCompletionPort failure before any
+            //   intervening Win32/CRT calls that would overwrite thread-local error slot
+            // - Concurrency: Reads thread-local storage only (no data races)
+            // - Memory safety: Returns u32 value (no pointer dereferences)
+            unsafe { GetLastError() }
+        )
+        .into());
     }
 
     let mut remaining_requests_to_receive = 0;
@@ -397,14 +406,15 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
                 );
             }
 
-            // SAFETY:
-            // Call Win32 API FFI GetLastError() to check for any errors from ReadFile
-            unsafe {
-                if r == FALSE {
-                    let error = GetLastError();
-                    if error != ERROR_IO_PENDING {
-                        return Err(format!("{i}th Read failed {error}").into());
-                    }
+            if r == FALSE {
+                // SAFETY:
+                // - FFI contract: Called immediately after ReadFile failure before any
+                //   intervening Win32/CRT calls that would overwrite thread-local error slot
+                // - Concurrency: Reads thread-local storage only (no data races)
+                // - Memory safety: Returns u32 value (no pointer dereferences)
+                let error = unsafe { GetLastError() };
+                if error != ERROR_IO_PENDING {
+                    return Err(format!("{i}th Read failed {error}",).into());
                 }
             }
         } else {
@@ -422,14 +432,15 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
                 );
             }
 
-            // SAFETY:
-            // Call Win32 API FFI GetLastError() to check for any errors from WriteFile
-            unsafe {
-                if r == FALSE {
-                    let error = GetLastError();
-                    if error != ERROR_IO_PENDING {
-                        return Err(format!("{i}th Write failed {error}").into());
-                    }
+            if r == FALSE {
+                // SAFETY:
+                // - FFI contract: Called immediately after WriteFile failure before any
+                //   intervening Win32/CRT calls that would overwrite thread-local error slot
+                // - Concurrency: Reads thread-local storage only (no data races)
+                // - Memory safety: Returns u32 value (no pointer dereferences)
+                let error = unsafe { GetLastError() };
+                if error != ERROR_IO_PENDING {
+                    return Err(format!("{i}th Write failed {error}").into());
                 }
             }
         }
@@ -453,13 +464,18 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
             );
         }
 
-        // SAFETY:
-        // Call Win32 API FFI GetLastError() to check for any errors from
-        // GetQueuedCompletionStatus
-        unsafe {
-            if r == FALSE {
-                return Err(format!("GetQueuedCompletionStatus failed {}", GetLastError()).into());
-            }
+        if r == FALSE {
+            return Err(format!(
+                "GetQueuedCompletionStatus failed {}",
+                // SAFETY:
+                // - FFI contract: Called immediately after GetQueuedCompletionStatus failure
+                //   before any intervening Win32/CRT calls that would overwrite thread-local error
+                //   slot
+                // - Concurrency: Reads thread-local storage only (no data races)
+                // - Memory safety: Returns u32 value (no pointer dereferences)
+                unsafe { GetLastError() }
+            )
+            .into());
         }
 
         let i;
@@ -511,14 +527,15 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
                 );
             }
 
-            // SAFETY:
-            // Call Win32 API FFI GetLastError() to check for any errors from ReadFile
-            unsafe {
-                if r == FALSE {
-                    let error = GetLastError();
-                    if error != ERROR_IO_PENDING {
-                        return Err(format!("{i}th Read failed {error}").into());
-                    }
+            if r == FALSE {
+                // SAFETY:
+                // - FFI contract: Called immediately after ReadFile failure before any
+                //   intervening Win32/CRT calls that would overwrite thread-local error slot
+                // - Concurrency: Reads thread-local storage only (no data races)
+                // - Memory safety: Returns u32 value (no pointer dereferences)
+                let error = unsafe { GetLastError() };
+                if error != ERROR_IO_PENDING {
+                    return Err(format!("{i}th Read failed {error}").into());
                 }
             }
         } else {
@@ -562,14 +579,15 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
                 );
             }
 
-            // SAFETY:
-            // Call Win32 API FFI GetLastError() to check for any errors from WriteFile
-            unsafe {
-                if r == FALSE {
-                    let error = GetLastError();
-                    if error != ERROR_IO_PENDING {
-                        return Err(format!("{i}th write failed {error}").into());
-                    }
+            if r == FALSE {
+                // SAFETY:
+                // - FFI contract: Called immediately after WriteFile failure before any
+                //   intervening Win32/CRT calls that would overwrite thread-local error slot
+                // - Concurrency: Reads thread-local storage only (no data races)
+                // - Memory safety: Returns u32 value (no pointer dereferences)
+                let error = unsafe { GetLastError() };
+                if error != ERROR_IO_PENDING {
+                    return Err(format!("{i}th write failed {error}").into());
                 }
             }
         }
