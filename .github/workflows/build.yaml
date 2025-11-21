@@ -1,7 +1,6 @@
 on:
   push:
-  # Temporarily disable until new wdk-build version is ingested: https://github.com/microsoft/Windows-rust-driver-samples/pull/46
-  # pull_request:
+  pull_request:
   merge_group:
   schedule: # Trigger a job on default branch at 4AM PST everyday
     - cron: "0 11 * * *"
@@ -97,9 +96,9 @@ jobs:
       - name: Build and Package Sample Drivers
         run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }}
 
-      # Steps to use cargo-wdk to build and package drivers (uses cargo-wdk at specific commit https://github.com/microsoft/windows-drivers-rs/commit/5b9aa0a14e385daf5217c0f5232bcd4d3f4780a6)
+      # Steps to use cargo-wdk to build and package drivers
       - name: Install cargo-wdk binary
-        run: cargo +${{ matrix.rust_toolchain }} install --git https://github.com/microsoft/windows-drivers-rs.git cargo-wdk --branch main --rev 5b9aa0a14e385daf5217c0f5232bcd4d3f4780a6 --locked --force
+        run: cargo +${{ matrix.rust_toolchain }} install cargo-wdk --locked --force
 
       - name: Build and Package Sample Drivers with cargo-wdk
         run: cargo +${{ matrix.rust_toolchain }} wdk build --sample --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
