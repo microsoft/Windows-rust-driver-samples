@@ -25,6 +25,10 @@ use wdk_sys::{
 
 use crate::{GLOBAL_BUFFER, GUID_DEVINTERFACE};
 
+// Define constants for magic numbers
+const POOL_ALLOCATION_SIZE: usize = 64;
+const POOL_TAG: u32 = 's' as u32;
+
 /// `DriverEntry` initializes the driver and is the first routine called by the
 /// system after the driver is loaded. `DriverEntry` specifies the other entry
 /// points in the function driver, such as `EvtDevice` and `DriverUnload`.
@@ -147,8 +151,11 @@ extern "C" fn evt_driver_device_add(
     // Global buffer. This pool of memory is intentionally not freed by
     // the driver.
     unsafe {
-        const LENGTH: usize = 64;
-        GLOBAL_BUFFER = ExAllocatePool2(POOL_FLAG_NON_PAGED, LENGTH as SIZE_T, 's' as u32);
+        GLOBAL_BUFFER = ExAllocatePool2(
+            POOL_FLAG_NON_PAGED,
+            POOL_ALLOCATION_SIZE as SIZE_T,
+            POOL_TAG,
+        );
     }
 
     nt_status = unsafe {

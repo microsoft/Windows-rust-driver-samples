@@ -30,6 +30,10 @@ use crate::{
     WDF_REQUEST_CONTEXT_TYPE_INFO,
 };
 
+// Define constants for magic numbers
+const DEFAULT_PRIVATE_DATA: u32 = 0;
+const TIMER_DUE_TIME_MS: i64 = -100 * 10000;
+
 /// Worker routine called to create a device and its software resources.
 ///
 /// # Arguments:
@@ -108,7 +112,7 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
         // it will return NULL and assert if run under framework verifier mode.
         let device_context: *mut DeviceContext =
             unsafe { wdf_object_get_device_context(device as WDFOBJECT) };
-        unsafe { (*device_context).private_device_data = 0 };
+        unsafe { (*device_context).private_device_data = DEFAULT_PRIVATE_DATA };
 
         // Create a device interface so that application can find and talk
         // to us.
@@ -162,7 +166,7 @@ extern "C" fn echo_evt_device_self_managed_io_start(device: WDFDEVICE) -> NTSTAT
     // into low power state.
     unsafe { call_unsafe_wdf_function_binding!(WdfIoQueueStart, queue) };
 
-    let due_time: i64 = -(100) * (10000);
+    let due_time: i64 = TIMER_DUE_TIME_MS;
 
     let _ = unsafe { (*queue_context).timer.start(due_time) };
 
