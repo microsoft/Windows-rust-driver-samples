@@ -96,7 +96,7 @@ jobs:
       - name: Build and Package Sample Drivers
         run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }}
 
-      # Steps to use cargo-wdk to build and package drivers (uses latest released version)
+      # Steps to use cargo-wdk to build and package drivers
       - name: Install cargo-wdk binary
         run: cargo +${{ matrix.rust_toolchain }} install cargo-wdk --locked --force
 
