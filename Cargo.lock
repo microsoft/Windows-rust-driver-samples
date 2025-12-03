@@ -718,9 +718,9 @@ checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
 
 [[package]]
 name = "wdk"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "740e141413a6ac6eaec150be92a03f713797e7c2a561466df75293b2a1990963"
+checksum = "1fd496a19ec75c3d98f8be805f62ebde4651fc01babf681b832d8bae9c584d25"
 dependencies = [
  "cfg-if",
  "tracing",
@@ -731,9 +731,9 @@ dependencies = [
 
 [[package]]
 name = "wdk-alloc"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "085f4452e3a1a19318a2407e6eb82074e13c37b7921f55749ae6fecc4a7b76e8"
+checksum = "0000f9d158618c1dce7de647338e8219f9d6b618abd140c373c0552c6dbda1ca"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -743,9 +743,9 @@ dependencies = [
 
 [[package]]
 name = "wdk-build"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1eeb25edf4cd2228f202ae91f0e6ac709b56545a66319a4e59d5b3018b662181"
+checksum = "2c150122a579af759770b354064cd2994d29e97525d904f65ff1412ad5122766"
 dependencies = [
  "anyhow",
  "bindgen",
@@ -767,9 +767,9 @@ dependencies = [
 
 [[package]]
 name = "wdk-macros"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0829c8fd1b40155a0adeb5c38c68569627208d595d037dc73535ab1629b6a0e9"
+checksum = "b288d5ef6b276345d197fe0b82ef274dcb5a1f658a2294c67ff85b775f63ee26"
 dependencies = [
  "cfg-if",
  "fs4",
@@ -784,15 +784,15 @@ dependencies = [
 
 [[package]]
 name = "wdk-panic"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2248fc78e285873640dd1a8a8cd1bcd8554eeed21a00f4230d3fa97daa4199c"
+checksum = "e594cced255434b29bfca586a74653985281377ff4e36b8cfa58fd4c4c63073a"
 
 [[package]]
 name = "wdk-sys"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50c050d8f3744e92cdd71eeef00e7ecaa0270dd58a221be395c79ccffad8a2a4"
+checksum = "5e13e19ed97609bc1d1236806019309ca2d47aaad6d3217ab374e73c9ff3b8a9"
 dependencies = [
  "anyhow",
  "bindgen",
