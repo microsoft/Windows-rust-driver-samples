@@ -5,7 +5,7 @@ on:
   pull_request:
   merge_group:
   schedule: # Trigger a job on default branch at 4AM PST everyday
-    - cron: "0 11 * * *"
+    - cron: '0 11 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.compare || github.head_ref || github.ref }}
@@ -60,7 +60,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: microsoft/windows-drivers-rs
-          ref: main
+          ref: refs/pull/597/head
           path: _temp/windows-drivers-rs
           sparse-checkout: |
             .github/actions
