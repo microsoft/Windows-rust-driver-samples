@@ -122,19 +122,6 @@ jobs:
             .github/actions
           sparse-checkout-cone-mode: false
 
-      - name: Copy actions to workspace
-        shell: pwsh
-        run: Copy-Item -Recurse -Force _temp/windows-drivers-rs/.github/actions .github/
-
-      - name: Install Winget
-        uses: ./.github/actions/install-winget
-
-      - name: Install WDK (${{ matrix.wdk }})
-        uses: ./.github/actions/install-wdk
-        with:
-          version: ${{ matrix.wdk }}
-          source: winget
-
       - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
 
