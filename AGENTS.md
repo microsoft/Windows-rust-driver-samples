@@ -1,9 +1,4 @@
-# AGENTS.md
-
-> Universal instructions for AI coding agents working on this repository.
-> See [agents.md](https://agents.md) for the spec.
-
-## Repository Overview
+# Copilot Instructions
 
 Rust ports of Windows driver samples from the official [Windows Driver Samples](https://github.com/microsoft/Windows-driver-samples), using crates from [windows-drivers-rs](https://github.com/microsoft/windows-drivers-rs). All driver crates target `#![no_std]` and compile as `cdylib` for the Windows kernel.
 
@@ -55,9 +50,7 @@ cargo doc --locked
 
 ## Architecture
 
-### Workspace Structure
-
-The workspace (`Cargo.toml`) contains two categories of driver samples:
+### Workspace Layout
 
 - **`general/`** — Functional driver samples (e.g., `echo/kmdf/driver/DriverSync` is a KMDF echo driver)
 - **`tools/`** — Diagnostic/verification drivers (e.g., `dv/kmdf/fail_driver_pool_leak` intentionally leaks memory for Driver Verifier testing)
@@ -65,9 +58,9 @@ The workspace (`Cargo.toml`) contains two categories of driver samples:
 
 ### Driver Crate Anatomy
 
-Each driver crate follows this pattern:
+Each driver crate follows this file structure:
 
-- **`lib.rs`** — Crate root. `#![no_std]`, clippy lints, module declarations, context structs, `WDF_*_SIZE` constants, and `wdf_declare_context_type!` macro invocations
+- **`lib.rs`** — Crate root with `#![no_std]`, clippy lints, module declarations, context structs, `WDF_*_SIZE` constants, and `wdf_declare_context_type!` macro invocations
 - **`driver.rs`** — `DriverEntry` (exported as `#[export_name = "DriverEntry"]`, `extern "system"`) and `EvtDriverDeviceAdd` callback
 - **`device.rs`** — Device creation, PnP/power callbacks
 - **`queue.rs`** — I/O queue initialization and request handling callbacks
@@ -111,7 +104,7 @@ unsafe {
 
 ### WDF Structure Sizes
 
-WDF structs require their `Size` field to be set. The codebase uses const-evaluated `WDF_*_SIZE` constants with compile-time truncation assertions:
+WDF structs require their `Size` field to be set. Use const-evaluated `WDF_*_SIZE` constants with compile-time truncation assertions:
 
 ```rust
 #[allow(
