@@ -1,0 +1,27 @@
+[package]
+name = "echo-2"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[package.metadata.wdk]
+# Using workspace wdk config
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+paste.workspace = true
+wdk.workspace = true
+wdk-alloc.workspace = true
+wdk-panic.workspace = true
+wdk-sys.workspace = true
+
+[build-dependencies]
+anyhow.workspace = true
+wdk-build.workspace = true
+
+[features]
+default = []
+nightly = ["wdk/nightly", "wdk-sys/nightly"]
