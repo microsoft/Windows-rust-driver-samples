@@ -75,11 +75,55 @@ Before you submit your Pull Request (PR) consider the following guidelines:
   * Rebase your fork and force push to your GitHub repository (this will update your Pull Request):
 
     ```shell
-    git rebase master -i
+    git rebase main -i
     git push -f
     ```
 
 That's it! Thank you for your contribution!
+
+#### PR Title Format (Conventional Commits)
+
+This repository uses [squash-and-merge](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github#squashing-your-merge-commits), so the **PR title becomes the final commit message**. PR titles must follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification. This is enforced automatically by CI.
+
+The format is:
+
+```text
+<type>[optional scope]: <description>
+```
+
+**Types** (all lowercase):
+
+| Type | When to use |
+|------|-------------|
+| `feat` | A new feature or user-facing capability |
+| `fix` | A bug fix |
+| `docs` | Documentation-only changes |
+| `style` | Code style/formatting changes (no logic change) |
+| `refactor` | Code restructuring that neither fixes a bug nor adds a feature |
+| `perf` | Performance improvements |
+| `test` | Adding or updating tests |
+| `build` | Build system or dependency changes |
+| `ci` | CI/CD configuration changes |
+| `chore` | Maintenance tasks (dependency bumps, releases, etc.) |
+| `revert` | Reverting a previous commit |
+
+**Scope** is optional. When used, it should be a single noun identifying the affected area (e.g. a sample driver name). Omit the scope for cross-cutting changes. Multiple scopes are not supported.
+
+**Breaking changes** are indicated with `!` after the type/scope:
+
+```text
+refactor!: restructure sample driver layout
+```
+
+**Examples:**
+
+```text
+feat: add new UMDF sample driver
+fix: correct build configuration for DriverSync
+chore: bump wdk dependency versions
+ci: add ARM64 build support
+docs: update README with setup instructions
+```
 
 ## <a name="development"></a> Getting Started with windows-drivers-rs Development
 
