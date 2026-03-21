@@ -107,7 +107,13 @@ jobs:
           tool: cargo-make
 
       - name: Build and Package Sample Drivers
-        run: cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }}
+        # Unset RUSTFLAGS for cargo-make to work around RUSTFLAGS leaking into
+        # rust-script compilation of wdk-build (path dep via symlink defeats
+        # --cap-lints). Upstream fix: microsoft/windows-drivers-rs#629
+        run: |
+          $env:RUSTFLAGS = $null
+          cargo make default +${{ matrix.rust_toolchain }} --locked --profile ${{ matrix.cargo_profile }} --target ${{ matrix.target_triple.name }}
+        shell: pwsh
 
       # Steps to use cargo-wdk to build and package drivers
       - name: Install cargo-wdk binary

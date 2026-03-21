@@ -7,6 +7,10 @@ use wdk::{nt_success, paged_code, println, wdf};
 use wdk_sys::{
     call_unsafe_wdf_function_binding,
     ntddk::{ExAllocatePool2, ExFreePool},
+    _WDF_EXECUTION_LEVEL,
+    _WDF_IO_QUEUE_DISPATCH_TYPE,
+    _WDF_SYNCHRONIZATION_SCOPE,
+    _WDF_TRI_STATE,
     NTSTATUS,
     POOL_FLAG_NON_PAGED,
     SIZE_T,
@@ -25,10 +29,6 @@ use wdk_sys::{
     WDF_NO_HANDLE,
     WDF_OBJECT_ATTRIBUTES,
     WDF_TIMER_CONFIG,
-    _WDF_EXECUTION_LEVEL,
-    _WDF_IO_QUEUE_DISPATCH_TYPE,
-    _WDF_SYNCHRONIZATION_SCOPE,
-    _WDF_TRI_STATE,
 };
 
 use crate::{
