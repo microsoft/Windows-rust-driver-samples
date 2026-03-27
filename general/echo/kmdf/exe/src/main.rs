@@ -413,7 +413,7 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
                 // - Memory safety: Returns u32 value (no pointer dereferences)
                 let error = unsafe { GetLastError() };
                 if error != ERROR_IO_PENDING {
-                    return Err(format!("{i}th Read failed {error}",).into());
+                    return Err(format!("{i}th Read failed {error}").into());
                 }
             }
         } else {
@@ -488,7 +488,7 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
         }
 
         if io_type == READER_TYPE {
-            println!("Number of bytes read by request number {i} is {number_of_bytes_transferred}",);
+            println!("Number of bytes read by request number {i} is {number_of_bytes_transferred}");
 
             if globals.limited_loops {
                 remaining_requests_to_receive -= 1;
@@ -539,7 +539,7 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
             }
         } else {
             println!(
-                "Number of bytes written by request number {i} is {number_of_bytes_transferred}",
+                "Number of bytes written by request number {i} is {number_of_bytes_transferred}"
             );
 
             if globals.limited_loops {
@@ -636,7 +636,7 @@ fn get_device_path(interface_guid: &Uuid) -> Result<(), Box<dyn Error>> {
 
     if config_ret != DeviceAndDriverInstallation::CR_SUCCESS {
         return Err(
-            format!("Error 0x{config_ret:08X} retrieving device interface list size.",).into(),
+            format!("Error 0x{config_ret:08X} retrieving device interface list size.").into(),
         );
     }
 

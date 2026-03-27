@@ -4,6 +4,8 @@
 use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
     call_unsafe_wdf_function_binding,
+    _WDF_EXECUTION_LEVEL,
+    _WDF_SYNCHRONIZATION_SCOPE,
     NTSTATUS,
     STATUS_SUCCESS,
     WDFDEVICE,
@@ -13,8 +15,6 @@ use wdk_sys::{
     WDF_NO_HANDLE,
     WDF_OBJECT_ATTRIBUTES,
     WDF_PNPPOWER_EVENT_CALLBACKS,
-    _WDF_EXECUTION_LEVEL,
-    _WDF_SYNCHRONIZATION_SCOPE,
 };
 
 use crate::{

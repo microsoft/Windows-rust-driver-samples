@@ -5,6 +5,8 @@ use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
     call_unsafe_wdf_function_binding,
     ntddk::ExAllocatePool2,
+    _WDF_EXECUTION_LEVEL,
+    _WDF_SYNCHRONIZATION_SCOPE,
     DRIVER_OBJECT,
     NTSTATUS,
     PCUNICODE_STRING,
@@ -19,8 +21,6 @@ use wdk_sys::{
     WDF_NO_HANDLE,
     WDF_NO_OBJECT_ATTRIBUTES,
     WDF_OBJECT_ATTRIBUTES,
-    _WDF_EXECUTION_LEVEL,
-    _WDF_SYNCHRONIZATION_SCOPE,
 };
 
 use crate::{GLOBAL_BUFFER, GUID_DEVINTERFACE};
