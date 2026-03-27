@@ -56,6 +56,15 @@ use windows_sys::Win32::{
     },
 };
 
+// Define constants for magic numbers
+const READER_TYPE: u32 = 1;
+const WRITER_TYPE: u32 = 2;
+const NUM_ASYNCH_IO: usize = 100;
+const BUFFER_SIZE: usize = 40 * 1024;
+const TEST_SIZE_SMALL: usize = 512;
+const TEST_SIZE_LARGE: usize = 30 * 1024;
+const NULL_TERMINATOR: u16 = 0;
+
 #[derive(Default, Debug)]
 struct Globals {
     perform_async_io: bool,
@@ -66,10 +75,6 @@ struct Globals {
 
 static GLOBAL_DATA: Lazy<RwLock<Globals>> = Lazy::new(|| RwLock::new(Globals::default()));
 static GUID_DEVINTERFACE_ECHO: Uuid = uuid!("CDC35B6E-0BE4-4936-BF5F-5537380A7C1A");
-static READER_TYPE: u32 = 1;
-static WRITER_TYPE: u32 = 2;
-static NUM_ASYNCH_IO: usize = 100;
-static BUFFER_SIZE: usize = 40 * 1024;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let argument_vector: Vec<String> = env::args().collect();
@@ -108,7 +113,7 @@ Exit the app anytime by pressing Ctrl-C
     drop(globals);
 
     let h_device: HANDLE;
-    path_vec.push(0);
+    path_vec.push(NULL_TERMINATOR);
     let path = path_vec.as_ptr();
 
     // SAFETY:
@@ -155,9 +160,9 @@ Exit the app anytime by pressing Ctrl-C
 
         h.join().unwrap().unwrap();
     } else {
-        perform_write_read_test(h_device, 512)?;
+        perform_write_read_test(h_device, u32::try_from(TEST_SIZE_SMALL).unwrap())?;
 
-        perform_write_read_test(h_device, 30 * 1024)?;
+        perform_write_read_test(h_device, u32::try_from(TEST_SIZE_LARGE).unwrap())?;
     }
 
     Ok(())

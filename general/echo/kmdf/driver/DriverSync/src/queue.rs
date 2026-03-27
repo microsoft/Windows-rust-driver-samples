@@ -44,11 +44,17 @@ use crate::{
     WDF_TIMER_CONFIG_SIZE,
 };
 
-/// Set max write length for testing
+/// Set max write length for testing (40KB)
 const MAX_WRITE_LENGTH: usize = 1024 * 40;
 
-/// Set timer period in ms
+/// Set timer period in ms (10 seconds)
 const TIMER_PERIOD: u32 = 1000 * 10;
+
+/// Increment value for atomic operations
+const ATOMIC_INCREMENT_VALUE: i32 = 1;
+
+/// Floor value for zero-based operations
+const ZERO_FLOOR: i32 = 0;
 
 /// This routine will interlock increment a value only if the current value
 /// is greater then the floor value.
@@ -79,7 +85,7 @@ fn echo_interlocked_increment_floor(target: &AtomicI32, floor: i32) -> i32 {
         //
         match target.compare_exchange(
             current_value,
-            current_value + 1,
+            current_value + ATOMIC_INCREMENT_VALUE,
             Ordering::SeqCst,
             Ordering::SeqCst,
         ) {
@@ -91,7 +97,7 @@ fn echo_interlocked_increment_floor(target: &AtomicI32, floor: i32) -> i32 {
         }
     }
 
-    current_value + 1
+    current_value + ATOMIC_INCREMENT_VALUE
 }
 
 /// Increment the value only if it is currently > 0.
@@ -104,7 +110,7 @@ fn echo_interlocked_increment_floor(target: &AtomicI32, floor: i32) -> i32 {
 ///
 /// Upon success, a value > 0.  Upon failure, a value <= 0.
 fn echo_interlocked_increment_gtzero(target: &AtomicI32) -> i32 {
-    echo_interlocked_increment_floor(target, 0)
+    echo_interlocked_increment_floor(target, ZERO_FLOOR)
 }
 
 /// The I/O dispatch callbacks for the frameworks device object
@@ -208,7 +214,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
         EvtTimerFunc: Some(echo_evt_timer_func),
         Period: TIMER_PERIOD,
         AutomaticSerialization: u8::from(true),
-        TolerableDelay: 0,
+        TolerableDelay: TOLERABLE_DELAY,
         ..WDF_TIMER_CONFIG::default()
     };
 
@@ -266,7 +272,7 @@ fn echo_decrement_request_cancel_ownership_count(request_context: *mut RequestCo
             .fetch_sub(1, Ordering::SeqCst)
     };
 
-    result - 1 == 0
+    result - RESULT_SUCCESS_THRESHOLD == 0
 }
 
 /// Attempts to increment the request ownership count so that it cannot be
@@ -727,3 +733,7 @@ unsafe extern "C" fn echo_evt_timer_func(timer: WDFTIMER) {
         }
     }
 }
+
+// Define constants for magic numbers
+const TOLERABLE_DELAY: u32 = 0;
+const RESULT_SUCCESS_THRESHOLD: i32 = 1;
