@@ -36,11 +36,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Checkout windows-drivers-rs actions
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/windows-drivers-rs
+          ref: main
+          path: _temp/windows-drivers-rs
+          sparse-checkout: |
+            .github/actions
+          sparse-checkout-cone-mode: false
+
+      - name: Copy actions to workspace
+        shell: pwsh
+        run: Copy-Item -Recurse -Force _temp/windows-drivers-rs/.github/actions .github/
+
       - name: Install Rust Toolchain (Stable)
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install taplo-cli
-        uses: taiki-e/install-action@v2
+        uses: ./.github/actions/install-cargo-tool
         with:
           tool: taplo-cli
 

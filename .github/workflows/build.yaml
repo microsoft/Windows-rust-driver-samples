@@ -102,7 +102,7 @@ jobs:
 
       # Steps to use cargo-make to build and package drivers
       - name: Install Cargo Make
-        uses: taiki-e/install-action@v2
+        uses: ./.github/actions/install-cargo-tool
         with:
           tool: cargo-make
 
