@@ -39,10 +39,18 @@ jobs:
       - name: Install Rust Toolchain (Stable)
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install taplo-cli
-        uses: taiki-e/install-action@v2
+      # Using cache-cargo-install-action to cache the compiled binary.
+      # Once taplo ships a release with field-level `keys` matching, this can
+      # be simplified back to install-action with a normal version pin.
+      - name: Install taplo-cli from pinned revision b673b44d
+        uses: taiki-e/cache-cargo-install-action@v3
         with:
           tool: taplo-cli
+          git: https://github.com/tamasfe/taplo
+          rev: b673b44d
+          locked: true
+        env:
+          RUSTFLAGS: ""
 
       - run: taplo fmt --check --diff
         name: Check TOML files formatting
