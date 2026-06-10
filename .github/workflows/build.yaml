@@ -120,4 +120,4 @@ jobs:
         run: cargo +${{ matrix.rust_toolchain }} install cargo-wdk --locked --force
 
       - name: Build and Package Sample Drivers with cargo-wdk
-        run: cargo +${{ matrix.rust_toolchain }} wdk build --sample --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
+        run: cargo +${{ matrix.rust_toolchain }} wdk build --locked --sample --profile ${{ matrix.cargo_profile }} --target-arch ${{ matrix.target_triple.arch }}
