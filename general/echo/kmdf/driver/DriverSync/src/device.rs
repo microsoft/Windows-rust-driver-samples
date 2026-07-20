@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // License: MIT OR Apache-2.0
 
+use core::time::Duration;
+
 use wdk::{nt_success, paged_code, println};
 use wdk_sys::{
     call_unsafe_wdf_function_binding,
@@ -146,6 +148,24 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
 ///
 /// * `NTSTATUS` - Failures will result in the device stack being torn down.
 extern "C" fn echo_evt_device_self_managed_io_start(device: WDFDEVICE) -> NTSTATUS {
+    /// 100ms relative due time for a WDF timer, in system time units.
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "100ms in 100-nanosecond units is known to fit in i64"
+    )]
+    const WDF_TIMER_DUE_TIME_100_MS: i64 = {
+        // System time units are 100-nanosecond intervals.
+        const SYSTEM_TIME_UNITS: u128 = Duration::from_millis(100).as_nanos() / 100;
+        const {
+            assert!(
+                SYSTEM_TIME_UNITS <= i64::MAX as u128,
+                "SYSTEM_TIME_UNITS should fit in i64"
+            );
+        };
+        // Negative marks the value as a relative (rather than absolute) timeout.
+        -(SYSTEM_TIME_UNITS as i64)
+    };
+
     // Restart the queue and the periodic timer. We stopped them before going
     // into low power state.
     let queue: WDFQUEUE;
@@ -162,7 +182,7 @@ extern "C" fn echo_evt_device_self_managed_io_start(device: WDFDEVICE) -> NTSTAT
     // into low power state.
     unsafe { call_unsafe_wdf_function_binding!(WdfIoQueueStart, queue) };
 
-    let due_time: i64 = -(100) * (10000);
+    let due_time: i64 = WDF_TIMER_DUE_TIME_100_MS;
 
     let _ = unsafe { (*queue_context).timer.start(due_time) };
 

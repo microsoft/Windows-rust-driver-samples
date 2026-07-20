@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // License: MIT OR Apache-2.0
 
-use core::sync::atomic::Ordering;
+use core::{sync::atomic::Ordering, time::Duration};
 
 use wdk::{nt_success, paged_code, println, wdf};
 use wdk_sys::{
@@ -43,12 +43,6 @@ use crate::{
     WDF_QUEUE_CONTEXT_TYPE_INFO,
     WDF_TIMER_CONFIG_SIZE,
 };
-
-/// Set max write length for testing
-const MAX_WRITE_LENGTH: usize = 1024 * 40;
-
-/// Set timer period in ms
-const TIMER_PERIOD: u32 = 1000 * 10;
 
 /// This routine will interlock increment a value only if the current value
 /// is greater then the floor value.
@@ -130,6 +124,19 @@ fn echo_interlocked_increment_gtzero(target: &AtomicI32) -> i32 {
 /// * `NTSTATUS`
 #[link_section = "PAGE"]
 pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "10 seconds in millisecond units is known to fit in u32"
+    )]
+    const TIMER_PERIOD_MS: u32 = {
+        const MILLIS: u128 = Duration::from_secs(10).as_millis();
+        const {
+            assert!(MILLIS <= u32::MAX as u128, "10,000 should fit in u32");
+        };
+
+        MILLIS as u32
+    };
+
     paged_code!();
 
     let mut queue = WDF_NO_HANDLE as WDFQUEUE;
@@ -206,7 +213,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
     let mut timer_config = WDF_TIMER_CONFIG {
         Size: WDF_TIMER_CONFIG_SIZE,
         EvtTimerFunc: Some(echo_evt_timer_func),
-        Period: TIMER_PERIOD,
+        Period: TIMER_PERIOD_MS,
         AutomaticSerialization: u8::from(true),
         TolerableDelay: 0,
         ..WDF_TIMER_CONFIG::default()
@@ -518,6 +525,15 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
 ///
 /// * `VOID`
 extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: usize) {
+    /// Number of bytes in one kilobyte.
+    const BYTES_PER_KB: usize = 1024;
+    /// Max write length, in bytes, for testing
+    const MAX_WRITE_LENGTH: usize = 40 * BYTES_PER_KB;
+
+    /// Non-zero char literal (of one to four chars) for pool tag used in
+    /// `ExAllocatePool2`
+    const MEMORY_TAG: u32 = u32::from_be_bytes(*b"sam1");
+
     let mut memory = WDF_NO_HANDLE as WDFMEMORY;
     let mut status: NTSTATUS;
     let queue_context = unsafe { queue_get_context(queue as WDFOBJECT) };
@@ -564,9 +580,8 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
             (*queue_context).length = 0;
         }
 
-        // FIXME: Memory Tag
         (*queue_context).buffer =
-            ExAllocatePool2(POOL_FLAG_NON_PAGED, length as SIZE_T, 's' as u32);
+            ExAllocatePool2(POOL_FLAG_NON_PAGED, length as SIZE_T, MEMORY_TAG);
         if (*queue_context).buffer.is_null() {
             println!(
                 "echo_evt_io_write Could not allocate {:?} byte buffer",
@@ -697,9 +712,8 @@ unsafe extern "C" fn echo_evt_timer_func(timer: WDFTIMER) {
             // currently racing with it), there is no need to use an interlocked
             // decrement to lower the cancel ownership count.
 
-            // 2 is the initial count we set when we initialized
-            // CancelCompletionOwnershipCount plus the call to
-            // EchoIncrementRequestCancelOwnershipCount()
+            // 2 = the initial ownership count (1) plus the one increment
+            // acquired via echo_increment_request_cancel_ownership_count.
             (*request_context)
                 .cancel_completion_ownership_count
                 .fetch_sub(2, Ordering::SeqCst);

@@ -72,6 +72,11 @@ static NUM_ASYNCH_IO: usize = 100;
 static BUFFER_SIZE: usize = 40 * 1024;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    /// Transfer length, in bytes, for the first synchronous write/read test.
+    const SYNC_TEST_SMALL_LENGTH: u32 = 512;
+    /// Transfer length, in bytes, for the second synchronous write/read test.
+    const SYNC_TEST_LARGE_LENGTH: u32 = 30 * 1024;
+
     let argument_vector: Vec<String> = env::args().collect();
     let argument_count = argument_vector.len();
 
@@ -155,9 +160,9 @@ Exit the app anytime by pressing Ctrl-C
 
         h.join().unwrap().unwrap();
     } else {
-        perform_write_read_test(h_device, 512)?;
+        perform_write_read_test(h_device, SYNC_TEST_SMALL_LENGTH)?;
 
-        perform_write_read_test(h_device, 30 * 1024)?;
+        perform_write_read_test(h_device, SYNC_TEST_LARGE_LENGTH)?;
     }
 
     Ok(())
@@ -292,6 +297,14 @@ fn async_io(thread_parameter: u32) -> Result<(), Box<dyn Error + Send + Sync>> {
 // function warning
 #[allow(clippy::too_many_lines)]
 fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
+    /// Completion key associated with the device handle on the I/O completion
+    /// port.
+    const COMPLETION_PORT_KEY: usize = 1;
+    /// Number of concurrent threads allowed to run for the I/O completion port.
+    /// Zero lets the system allow as many concurrent threads as there are
+    /// processors.
+    const COMPLETION_PORT_CONCURRENT_THREADS: u32 = 0;
+
     let globals = GLOBAL_DATA.read()?;
 
     let h_device: HANDLE;
@@ -334,7 +347,12 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
     // Call Win32 API FFI CreateIoCompletionPort to get handle for completing async
     // requests
     unsafe {
-        h_completion_port = CreateIoCompletionPort(h_device, std::ptr::null_mut(), 1, 0);
+        h_completion_port = CreateIoCompletionPort(
+            h_device,
+            std::ptr::null_mut(),
+            COMPLETION_PORT_KEY,
+            COMPLETION_PORT_CONCURRENT_THREADS,
+        );
     }
 
     if h_completion_port.is_null() {
