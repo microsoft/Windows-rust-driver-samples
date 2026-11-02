@@ -24,9 +24,15 @@
 #![deny(rustdoc::unescaped_backticks)]
 #![deny(rustdoc::redundant_explicit_links)]
 
-use std::{env, error::Error, ffi::OsString, os::windows::prelude::*, sync::RwLock, thread};
+use std::{
+    env,
+    error::Error,
+    ffi::OsString,
+    os::windows::prelude::*,
+    sync::{LazyLock, RwLock},
+    thread,
+};
 
-use once_cell::sync::Lazy;
 use uuid::{uuid, Uuid};
 use windows_sys::{
     core::BOOL,
@@ -66,7 +72,7 @@ struct Globals {
     device_path: String,
 }
 
-static GLOBAL_DATA: Lazy<RwLock<Globals>> = Lazy::new(|| RwLock::new(Globals::default()));
+static GLOBAL_DATA: LazyLock<RwLock<Globals>> = LazyLock::new(|| RwLock::new(Globals::default()));
 static GUID_DEVINTERFACE_ECHO: Uuid = uuid!("CDC35B6E-0BE4-4936-BF5F-5537380A7C1A");
 static READER_TYPE: u32 = 1;
 static WRITER_TYPE: u32 = 2;
@@ -212,7 +218,7 @@ fn perform_write_read_test(h_device: HANDLE, test_length: u32) -> Result<(), Box
             h_device,
             write_buffer.as_ptr().cast(),
             u32::try_from(write_buffer.len()).unwrap(),
-            &mut bytes_returned,
+            &raw mut bytes_returned,
             std::ptr::null_mut(),
         );
     }
@@ -249,7 +255,7 @@ fn perform_write_read_test(h_device: HANDLE, test_length: u32) -> Result<(), Box
             h_device,
             read_buffer.as_mut_ptr().cast(),
             test_length,
-            &mut bytes_returned,
+            &raw mut bytes_returned,
             std::ptr::null_mut(),
         );
     }
@@ -456,7 +462,7 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
                     h_device,
                     buffer_offset,
                     u32::try_from(BUFFER_SIZE).unwrap(),
-                    &mut number_of_bytes_written,
+                    &raw mut number_of_bytes_written,
                     overlap_struct_offset,
                 );
             }
@@ -488,9 +494,9 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
         unsafe {
             r = GetQueuedCompletionStatus(
                 h_completion_port,
-                &mut number_of_bytes_transferred,
-                &mut key,
-                std::ptr::addr_of_mut!(completed_ov_ptr),
+                &raw mut number_of_bytes_transferred,
+                &raw mut key,
+                &raw mut completed_ov_ptr,
                 INFINITE,
             );
         }
@@ -667,8 +673,8 @@ fn get_device_path(interface_guid: &Uuid) -> Result<(), Box<dyn Error>> {
     // of space needed for a subsequent request
     unsafe {
         config_ret = DeviceAndDriverInstallation::CM_Get_Device_Interface_List_SizeW(
-            &mut device_interface_list_length,
-            &guid,
+            &raw mut device_interface_list_length,
+            &raw const guid,
             std::ptr::null(),
             DeviceAndDriverInstallation::CM_GET_DEVICE_INTERFACE_LIST_PRESENT,
         );
@@ -694,7 +700,7 @@ fn get_device_path(interface_guid: &Uuid) -> Result<(), Box<dyn Error>> {
     // Device Interfaces that match the Interface GUID for the echo driver
     unsafe {
         config_ret = DeviceAndDriverInstallation::CM_Get_Device_Interface_ListW(
-            &guid,
+            &raw const guid,
             std::ptr::null(),
             buffer_ptr,
             device_interface_list_length,
