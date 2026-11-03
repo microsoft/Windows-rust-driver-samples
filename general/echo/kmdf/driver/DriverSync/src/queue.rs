@@ -77,9 +77,10 @@ fn echo_interlocked_increment_floor(target: &AtomicI32, floor: i32) -> i32 {
             Ordering::SeqCst,
             Ordering::SeqCst,
         ) {
-            // If oldValue == currentValue, then no one updated Target in between
-            // the deref at the top and the InterlockecCompareExchange afterward
-            // and we have successfully incremented the value and can exit the loop.
+            // If oldValue == currentValue, then no one updated Target in
+            // between the deref at the top and the InterlockecCompareExchange
+            // afterward and we have successfully incremented the value and can
+            // exit the loop.
             Ok(_) => break,
             Err(v) => current_value = v,
         }
@@ -287,7 +288,8 @@ fn echo_decrement_request_cancel_ownership_count(request_context: *mut RequestCo
 ///
 /// * TRUE if the count was incremented, FALSE otherwise
 fn echo_increment_request_cancel_ownership_count(request_context: *mut RequestContext) -> bool {
-    // See comments in echo_interlocked_increment_floor as to why <= 1 is failure
+    // See comments in echo_interlocked_increment_floor as to why <= 1 is
+    // failure
     //
     (unsafe {
         echo_interlocked_increment_gtzero(&(*request_context).cancel_completion_ownership_count)
@@ -498,10 +500,10 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
         )]
     };
 
-    // Mark the request is cancelable.  This must be the last thing we do because
-    // the cancel routine can run immediately after we set it.  This means that
-    // CurrentRequest and CurrentStatus must be initialized before we mark the
-    // request cancelable.
+    // Mark the request is cancelable.  This must be the last thing we do
+    // because the cancel routine can run immediately after we set it.  This
+    // means that CurrentRequest and CurrentStatus must be initialized before we
+    // mark the request cancelable.
     echo_set_current_request(request, queue);
 }
 
@@ -623,10 +625,10 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
         call_unsafe_wdf_function_binding!(WdfRequestSetInformation, request, length as u64);
     }
 
-    // Mark the request is cancelable.  This must be the last thing we do because
-    // the cancel routine can run immediately after we set it.  This means that
-    // CurrentRequest and CurrentStatus must be initialized before we mark the
-    // request cancelable.
+    // Mark the request is cancelable.  This must be the last thing we do
+    // because the cancel routine can run immediately after we set it.  This
+    // means that CurrentRequest and CurrentStatus must be initialized before we
+    // mark the request cancelable.
     echo_set_current_request(request, queue);
 }
 

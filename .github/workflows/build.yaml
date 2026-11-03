@@ -106,6 +106,21 @@ jobs:
         with:
           tool: cargo-make
 
+      # Cargo's build-dir layout v2 nests rust-script's long package name twice,
+      # pushing the cargo-make load_script binary's output path past 260
+      # characters (MAX_PATH). MSVC's link.exe does not support longer paths,
+      # so linking fails with LNK1104 (cannot open file).
+      # rust-script runs cargo from %LOCALAPPDATA%\rust-script\projects\<id>, so
+      # this config shortens build-dir for rust-script builds only. A global
+      # build-dir would break wdk-build, which looks for Cargo.lock above OUT_DIR.
+      - name: Shorten rust-script build-dir
+        run: |
+          $configDir = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'rust-script\.cargo'
+          New-Item -ItemType Directory -Force $configDir | Out-Null
+          $buildDir = (Join-Path $env:RUNNER_TEMP 'rsb') -replace '\\', '/'
+          Set-Content (Join-Path $configDir 'config.toml') "[build]`nbuild-dir = '$buildDir'"
+        shell: pwsh
+
       - name: Build and Package Sample Drivers
         # Unset RUSTFLAGS for cargo-make to work around RUSTFLAGS leaking into
         # rust-script compilation of wdk-build (path dep via symlink defeats

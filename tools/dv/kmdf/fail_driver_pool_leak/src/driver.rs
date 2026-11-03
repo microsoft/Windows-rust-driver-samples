@@ -60,8 +60,8 @@ extern "system" fn driver_entry(
         {
             const WDF_DRIVER_CONFIG_SIZE: usize = core::mem::size_of::<WDF_DRIVER_CONFIG>();
 
-            // Manually assert there is not truncation since clippy doesn't work for
-            // compile-time constants
+            // Manually assert there is not truncation since clippy doesn't work
+            // for compile-time constants
             const { assert!(WDF_DRIVER_CONFIG_SIZE <= ULONG::MAX as usize) }
 
             wdf_driver_config_size = WDF_DRIVER_CONFIG_SIZE as ULONG;
@@ -187,8 +187,9 @@ extern "C" fn evt_driver_unload(_driver: WDFDRIVER) {
     println!("Enter: evt_driver_unload");
 
     // Ideally, the memory allocated to the Global buffer in lib.rs L51 should
-    // be freed here by calling the ExFreePool API. But to demonstrate the Driver
-    // Verifier's ability to catch pool leaks, the buffer is deliberately not freed.
+    // be freed here by calling the ExFreePool API. But to demonstrate the
+    // Driver Verifier's ability to catch pool leaks, the buffer is deliberately
+    // not freed.
 
     // unsafe { wdk_sys::ntddk::ExFreePool(GLOBAL_BUFFER) };
 
