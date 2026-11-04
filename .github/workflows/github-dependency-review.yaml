@@ -19,19 +19,18 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           allow-licenses: >-
             MIT,
             Apache-2.0,
             BSD-3-Clause,
             ISC,
-            Unicode-DFS-2016
-          # anstyle@1.0.4 is licensed as (MIT OR Apache-2.0), but the Github api fails to detect it: https://github.com/rust-cli/anstyle/tree/main/crates/anstyle
-          allow-dependencies-licenses: 'pkg:cargo/anstyle@1.0.4'
+            Unicode-DFS-2016,
+            Unicode-3.0
           comment-summary-in-pr: on-failure
           # Explicit refs required for merge_group and push triggers:
           # https://github.com/actions/dependency-review-action/issues/456

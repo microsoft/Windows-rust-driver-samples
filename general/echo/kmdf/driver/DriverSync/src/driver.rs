@@ -177,9 +177,15 @@ fn echo_print_driver_version() -> NTSTATUS {
         call_unsafe_wdf_function_binding!(WdfDriverIsVersionAvailable, driver, &raw mut ver)
     } > 0
     {
-        println!("Yes, framework version is 1.0");
+        println!(
+            "Yes, framework version is {}.{}",
+            ver.MajorVersion, ver.MinorVersion
+        );
     } else {
-        println!("No, framework version is not 1.0");
+        println!(
+            "No, framework version is not {}.{}",
+            ver.MajorVersion, ver.MinorVersion
+        );
     }
 
     STATUS_SUCCESS

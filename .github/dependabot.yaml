@@ -1,12 +1,18 @@
 version: 2
 updates:
   - package-ecosystem: "cargo"
-    directory: "/"
+    directories: ["**/*"]
+    groups:
+      # Create one repo-wide PR per Cargo dependency name,
+      # combining all its manifest and lockfile updates.
+      per-dependency:
+        group-by: dependency-name
     schedule:
       interval: "weekly"
-      day: "wednesday"
-      timezone: "America/Los_Angeles"
-      time: "06:00"
+      day: "tuesday"
+      timezone: "Etc/UTC"
+      time: "23:00"
+    open-pull-requests-limit: 10
     commit-message:
       prefix: "chore"
     labels:
@@ -15,13 +21,25 @@ updates:
 
   - package-ecosystem: "github-actions"
     directory: "/"
+    groups:
+      # Combine minor and patch updates for all actions into one PR.
+      # Leave major upgrades ungrouped for individual review.
+      actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
     schedule:
       interval: "weekly"
-      day: "wednesday"
-      timezone: "America/Los_Angeles"
-      time: "06:00"
+      day: "thursday"
+      timezone: "Etc/UTC"
+      time: "23:00"
+    open-pull-requests-limit: 10
     commit-message:
       prefix: "chore"
     labels:
       - "type:dependabot"
       - "type:dependencies-github-actions"
+    cooldown:
+      default-days: 7

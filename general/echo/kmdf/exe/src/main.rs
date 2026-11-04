@@ -24,35 +24,43 @@
 #![deny(rustdoc::unescaped_backticks)]
 #![deny(rustdoc::redundant_explicit_links)]
 
-use std::{env, error::Error, ffi::OsString, os::windows::prelude::*, sync::RwLock, thread};
+use std::{
+    env,
+    error::Error,
+    ffi::OsString,
+    os::windows::prelude::*,
+    sync::{LazyLock, RwLock},
+    thread,
+};
 
-use once_cell::sync::Lazy;
 use uuid::{uuid, Uuid};
-use windows_sys::Win32::{
-    Devices::DeviceAndDriverInstallation,
-    Foundation::{
-        CloseHandle,
-        GetLastError,
-        BOOL,
-        ERROR_IO_PENDING,
-        FALSE,
-        HANDLE,
-        INVALID_HANDLE_VALUE,
-    },
-    Storage::FileSystem::{
-        CreateFileW,
-        ReadFile,
-        WriteFile,
-        FILE_FLAG_OVERLAPPED,
-        FILE_GENERIC_READ,
-        FILE_GENERIC_WRITE,
-        FILE_SHARE_READ,
-        FILE_SHARE_WRITE,
-        OPEN_EXISTING,
-    },
-    System::{
-        Threading::INFINITE,
-        IO::{CreateIoCompletionPort, GetQueuedCompletionStatus, OVERLAPPED, OVERLAPPED_0},
+use windows_sys::{
+    core::BOOL,
+    Win32::{
+        Devices::DeviceAndDriverInstallation,
+        Foundation::{
+            CloseHandle,
+            GetLastError,
+            ERROR_IO_PENDING,
+            FALSE,
+            HANDLE,
+            INVALID_HANDLE_VALUE,
+        },
+        Storage::FileSystem::{
+            CreateFileW,
+            ReadFile,
+            WriteFile,
+            FILE_FLAG_OVERLAPPED,
+            FILE_GENERIC_READ,
+            FILE_GENERIC_WRITE,
+            FILE_SHARE_READ,
+            FILE_SHARE_WRITE,
+            OPEN_EXISTING,
+        },
+        System::{
+            Threading::INFINITE,
+            IO::{CreateIoCompletionPort, GetQueuedCompletionStatus, OVERLAPPED, OVERLAPPED_0},
+        },
     },
 };
 
@@ -64,7 +72,7 @@ struct Globals {
     device_path: String,
 }
 
-static GLOBAL_DATA: Lazy<RwLock<Globals>> = Lazy::new(|| RwLock::new(Globals::default()));
+static GLOBAL_DATA: LazyLock<RwLock<Globals>> = LazyLock::new(|| RwLock::new(Globals::default()));
 static GUID_DEVINTERFACE_ECHO: Uuid = uuid!("CDC35B6E-0BE4-4936-BF5F-5537380A7C1A");
 static READER_TYPE: u32 = 1;
 static WRITER_TYPE: u32 = 2;
@@ -72,6 +80,11 @@ static NUM_ASYNCH_IO: usize = 100;
 static BUFFER_SIZE: usize = 40 * 1024;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    /// Transfer length, in bytes, for the first synchronous write/read test.
+    const SYNC_TEST_SMALL_LENGTH: u32 = 512;
+    /// Transfer length, in bytes, for the second synchronous write/read test.
+    const SYNC_TEST_LARGE_LENGTH: u32 = 30 * 1024;
+
     let argument_vector: Vec<String> = env::args().collect();
     let argument_count = argument_vector.len();
 
@@ -129,8 +142,9 @@ Exit the app anytime by pressing Ctrl-C
         return Err(format!(
             "Failed to open device. Error {}",
             // SAFETY:
-            // - FFI contract: Called immediately after CreateFileW failure before any intervening
-            //   Win32/CRT calls that would overwrite thread-local error slot
+            // - FFI contract: Called immediately after CreateFileW failure
+            //   before any intervening Win32/CRT calls that would overwrite
+            //   thread-local error slot
             // - Concurrency: Reads thread-local storage only (no data races)
             // - Memory safety: Returns u32 value (no pointer dereferences)
             unsafe { GetLastError() }
@@ -146,8 +160,8 @@ Exit the app anytime by pressing Ctrl-C
         let h =
             thread::spawn(|| -> Result<(), Box<dyn Error + Send + Sync>> { async_io(READER_TYPE) });
 
-        // Because async_io error requires Send + Sync but this function does not,
-        // cannot use ? operator
+        // Because async_io error requires Send + Sync but this function does
+        // not, cannot use ? operator
         #[allow(clippy::question_mark)]
         if let Err(e) = async_io(WRITER_TYPE) {
             return Err(e);
@@ -155,9 +169,9 @@ Exit the app anytime by pressing Ctrl-C
 
         h.join().unwrap().unwrap();
     } else {
-        perform_write_read_test(h_device, 512)?;
+        perform_write_read_test(h_device, SYNC_TEST_SMALL_LENGTH)?;
 
-        perform_write_read_test(h_device, 30 * 1024)?;
+        perform_write_read_test(h_device, SYNC_TEST_LARGE_LENGTH)?;
     }
 
     Ok(())
@@ -204,7 +218,7 @@ fn perform_write_read_test(h_device: HANDLE, test_length: u32) -> Result<(), Box
             h_device,
             write_buffer.as_ptr().cast(),
             u32::try_from(write_buffer.len()).unwrap(),
-            &mut bytes_returned,
+            &raw mut bytes_returned,
             std::ptr::null_mut(),
         );
     }
@@ -213,8 +227,9 @@ fn perform_write_read_test(h_device: HANDLE, test_length: u32) -> Result<(), Box
         return Err(format!(
             "PerformWriteReadTest: WriteFile failed: Error {}",
             // SAFETY:
-            // - FFI contract: Called immediately after WriteFile failure before any intervening
-            //   Win32/CRT calls that would overwrite thread-local error slot
+            // - FFI contract: Called immediately after WriteFile failure before
+            //   any intervening Win32/CRT calls that would overwrite
+            //   thread-local error slot
             // - Concurrency: Reads thread-local storage only (no data races)
             // - Memory safety: Returns u32 value (no pointer dereferences)
             unsafe { GetLastError() }
@@ -240,7 +255,7 @@ fn perform_write_read_test(h_device: HANDLE, test_length: u32) -> Result<(), Box
             h_device,
             read_buffer.as_mut_ptr().cast(),
             test_length,
-            &mut bytes_returned,
+            &raw mut bytes_returned,
             std::ptr::null_mut(),
         );
     }
@@ -249,8 +264,9 @@ fn perform_write_read_test(h_device: HANDLE, test_length: u32) -> Result<(), Box
         return Err(format!(
             "PerformWriteReadTest: ReadFile failed: Error {}",
             // SAFETY:
-            // - FFI contract: Called immediately after ReadFile failure before any intervening
-            //   Win32/CRT calls that would overwrite thread-local error slot
+            // - FFI contract: Called immediately after ReadFile failure before
+            //   any intervening Win32/CRT calls that would overwrite
+            //   thread-local error slot
             // - Concurrency: Reads thread-local storage only (no data races)
             // - Memory safety: Returns u32 value (no pointer dereferences)
             unsafe { GetLastError() }
@@ -259,8 +275,8 @@ fn perform_write_read_test(h_device: HANDLE, test_length: u32) -> Result<(), Box
     }
 
     // SAFETY:
-    // Call set_len on the Vec that contains the buffer used in ReadFile to tell the
-    // Vec how many bytes were actually put into the Vec
+    // Call set_len on the Vec that contains the buffer used in ReadFile to tell
+    // the Vec how many bytes were actually put into the Vec
     unsafe {
         read_buffer.set_len(usize::try_from(bytes_returned).unwrap());
     }
@@ -292,6 +308,14 @@ fn async_io(thread_parameter: u32) -> Result<(), Box<dyn Error + Send + Sync>> {
 // function warning
 #[allow(clippy::too_many_lines)]
 fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
+    /// Completion key associated with the device handle on the I/O completion
+    /// port.
+    const COMPLETION_PORT_KEY: usize = 1;
+    /// Number of concurrent threads allowed to run for the I/O completion port.
+    /// Zero lets the system allow as many concurrent threads as there are
+    /// processors.
+    const COMPLETION_PORT_CONCURRENT_THREADS: u32 = 0;
+
     let globals = GLOBAL_DATA.read()?;
 
     let h_device: HANDLE;
@@ -321,8 +345,9 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
             "Cannot open {} error {}",
             globals.device_path,
             // SAFETY:
-            // - FFI contract: Called immediately after CreateFileW failure before any intervening
-            //   Win32/CRT calls that would overwrite thread-local error slot
+            // - FFI contract: Called immediately after CreateFileW failure
+            //   before any intervening Win32/CRT calls that would overwrite
+            //   thread-local error slot
             // - Concurrency: Reads thread-local storage only (no data races)
             // - Memory safety: Returns u32 value (no pointer dereferences)
             unsafe { GetLastError() }
@@ -331,18 +356,24 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
     }
 
     // SAFETY:
-    // Call Win32 API FFI CreateIoCompletionPort to get handle for completing async
-    // requests
+    // Call Win32 API FFI CreateIoCompletionPort to get handle for completing
+    // async requests
     unsafe {
-        h_completion_port = CreateIoCompletionPort(h_device, std::ptr::null_mut(), 1, 0);
+        h_completion_port = CreateIoCompletionPort(
+            h_device,
+            std::ptr::null_mut(),
+            COMPLETION_PORT_KEY,
+            COMPLETION_PORT_CONCURRENT_THREADS,
+        );
     }
 
     if h_completion_port.is_null() {
         return Err(format!(
             "Cannot open completion port {}",
             // SAFETY:
-            // - FFI contract: Called immediately after CreateIoCompletionPort failure before any
-            //   intervening Win32/CRT calls that would overwrite thread-local error slot
+            // - FFI contract: Called immediately after CreateIoCompletionPort
+            //   failure before any intervening Win32/CRT calls that would
+            //   overwrite thread-local error slot
             // - Concurrency: Reads thread-local storage only (no data races)
             // - Memory safety: Returns u32 value (no pointer dereferences)
             unsafe { GetLastError() }
@@ -379,7 +410,8 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
 
     for i in 0..max_pending_requests {
         // SAFETY:
-        // Get the offset into the buffer for sending data at offset for request 'i'
+        // Get the offset into the buffer for sending data at offset for request
+        // 'i'
         let buffer_offset = unsafe {
             (buf.as_mut_ptr()
                 .offset(isize::try_from(i * BUFFER_SIZE).unwrap()))
@@ -387,14 +419,15 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
         };
 
         // SAFETY:
-        // Get the pointer for the list of Overlapped array for ReadFile at the offset
-        // for request 'i'
+        // Get the pointer for the list of Overlapped array for ReadFile at the
+        // offset for request 'i'
         let overlap_struct_offset =
             unsafe { ov_list.as_mut_ptr().offset(isize::try_from(i).unwrap()) };
 
         if io_type == READER_TYPE {
             // SAFETY:
-            // Call Win32 API FFI ReadFile to read from driver with an overlap option
+            // Call Win32 API FFI ReadFile to read from driver with an overlap
+            // option
             unsafe {
                 r = ReadFile(
                     h_device,
@@ -407,9 +440,11 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
 
             if r == FALSE {
                 // SAFETY:
-                // - FFI contract: Called immediately after ReadFile failure before any
-                //   intervening Win32/CRT calls that would overwrite thread-local error slot
-                // - Concurrency: Reads thread-local storage only (no data races)
+                // - FFI contract: Called immediately after ReadFile failure
+                //   before any intervening Win32/CRT calls that would overwrite
+                //   thread-local error slot
+                // - Concurrency: Reads thread-local storage only (no data
+                //   races)
                 // - Memory safety: Returns u32 value (no pointer dereferences)
                 let error = unsafe { GetLastError() };
                 if error != ERROR_IO_PENDING {
@@ -418,7 +453,8 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
             }
         } else {
             // SAFETY:
-            // Call Win32 API FFI WriteFile to write to driver with an overlap option
+            // Call Win32 API FFI WriteFile to write to driver with an overlap
+            // option
             unsafe {
                 let mut number_of_bytes_written: u32 = 0;
 
@@ -426,16 +462,18 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
                     h_device,
                     buffer_offset,
                     u32::try_from(BUFFER_SIZE).unwrap(),
-                    &mut number_of_bytes_written,
+                    &raw mut number_of_bytes_written,
                     overlap_struct_offset,
                 );
             }
 
             if r == FALSE {
                 // SAFETY:
-                // - FFI contract: Called immediately after WriteFile failure before any
-                //   intervening Win32/CRT calls that would overwrite thread-local error slot
-                // - Concurrency: Reads thread-local storage only (no data races)
+                // - FFI contract: Called immediately after WriteFile failure
+                //   before any intervening Win32/CRT calls that would overwrite
+                //   thread-local error slot
+                // - Concurrency: Reads thread-local storage only (no data
+                //   races)
                 // - Memory safety: Returns u32 value (no pointer dereferences)
                 let error = unsafe { GetLastError() };
                 if error != ERROR_IO_PENDING {
@@ -451,14 +489,14 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
         let mut completed_ov_ptr: *mut OVERLAPPED = std::ptr::null_mut();
 
         // SAFETY:
-        // Call Win32 API FFI GetQueuedCompletionStatus to access the status of the
-        // completion request
+        // Call Win32 API FFI GetQueuedCompletionStatus to access the status of
+        // the completion request
         unsafe {
             r = GetQueuedCompletionStatus(
                 h_completion_port,
-                &mut number_of_bytes_transferred,
-                &mut key,
-                std::ptr::addr_of_mut!(completed_ov_ptr),
+                &raw mut number_of_bytes_transferred,
+                &raw mut key,
+                &raw mut completed_ov_ptr,
                 INFINITE,
             );
         }
@@ -467,10 +505,12 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
             return Err(format!(
                 "GetQueuedCompletionStatus failed {}",
                 // SAFETY:
-                // - FFI contract: Called immediately after GetQueuedCompletionStatus failure
-                //   before any intervening Win32/CRT calls that would overwrite thread-local error
+                // - FFI contract: Called immediately after
+                //   GetQueuedCompletionStatus failure before any intervening
+                //   Win32/CRT calls that would overwrite thread-local error
                 //   slot
-                // - Concurrency: Reads thread-local storage only (no data races)
+                // - Concurrency: Reads thread-local storage only (no data
+                //   races)
                 // - Memory safety: Returns u32 value (no pointer dereferences)
                 unsafe { GetLastError() }
             )
@@ -480,9 +520,9 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
         let i;
 
         // SAFETY:
-        // Perform pointer math to determine which index 'i' to use by determining the
-        // offset of 'completed_ov_ptr' from the start of the array given by
-        // 'ov_list'
+        // Perform pointer math to determine which index 'i' to use by
+        // determining the offset of 'completed_ov_ptr' from the start of the
+        // array given by 'ov_list'
         unsafe {
             i = completed_ov_ptr.offset_from(ov_list.as_ptr());
         }
@@ -506,7 +546,8 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
             let buffer_offset;
 
             // SAFETY:
-            // Get the offset into the buffer for reading data at offset for request 'i'
+            // Get the offset into the buffer for reading data at offset for
+            // request 'i'
             unsafe {
                 buffer_offset = (buf
                     .as_mut_ptr()
@@ -528,9 +569,11 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
 
             if r == FALSE {
                 // SAFETY:
-                // - FFI contract: Called immediately after ReadFile failure before any
-                //   intervening Win32/CRT calls that would overwrite thread-local error slot
-                // - Concurrency: Reads thread-local storage only (no data races)
+                // - FFI contract: Called immediately after ReadFile failure
+                //   before any intervening Win32/CRT calls that would overwrite
+                //   thread-local error slot
+                // - Concurrency: Reads thread-local storage only (no data
+                //   races)
                 // - Memory safety: Returns u32 value (no pointer dereferences)
                 let error = unsafe { GetLastError() };
                 if error != ERROR_IO_PENDING {
@@ -558,7 +601,8 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
             let buffer_offset;
 
             // SAFETY:
-            // Get the offset into the buffer for sending data at offset for request 'i'
+            // Get the offset into the buffer for sending data at offset for
+            // request 'i'
             unsafe {
                 buffer_offset = (buf
                     .as_mut_ptr()
@@ -580,9 +624,11 @@ fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
 
             if r == FALSE {
                 // SAFETY:
-                // - FFI contract: Called immediately after WriteFile failure before any
-                //   intervening Win32/CRT calls that would overwrite thread-local error slot
-                // - Concurrency: Reads thread-local storage only (no data races)
+                // - FFI contract: Called immediately after WriteFile failure
+                //   before any intervening Win32/CRT calls that would overwrite
+                //   thread-local error slot
+                // - Concurrency: Reads thread-local storage only (no data
+                //   races)
                 // - Memory safety: Returns u32 value (no pointer dereferences)
                 let error = unsafe { GetLastError() };
                 if error != ERROR_IO_PENDING {
@@ -623,12 +669,12 @@ fn get_device_path(interface_guid: &Uuid) -> Result<(), Box<dyn Error>> {
     guid.data4 = *guid_data4;
 
     // SAFETY:
-    // Call Win32 API FFI CM_Get_Device_Interface_List_SizeW to determine size of
-    // space needed for a subsequent request
+    // Call Win32 API FFI CM_Get_Device_Interface_List_SizeW to determine size
+    // of space needed for a subsequent request
     unsafe {
         config_ret = DeviceAndDriverInstallation::CM_Get_Device_Interface_List_SizeW(
-            &mut device_interface_list_length,
-            &guid,
+            &raw mut device_interface_list_length,
+            &raw const guid,
             std::ptr::null(),
             DeviceAndDriverInstallation::CM_GET_DEVICE_INTERFACE_LIST_PRESENT,
         );
@@ -650,11 +696,11 @@ fn get_device_path(interface_guid: &Uuid) -> Result<(), Box<dyn Error>> {
     let buffer_ptr = buffer.as_mut_ptr();
 
     // SAFETY:
-    // Call Win32 API FFI CM_Get_Device_Interface_ListW to get the list of Device
-    // Interfaces that match the Interface GUID for the echo driver
+    // Call Win32 API FFI CM_Get_Device_Interface_ListW to get the list of
+    // Device Interfaces that match the Interface GUID for the echo driver
     unsafe {
         config_ret = DeviceAndDriverInstallation::CM_Get_Device_Interface_ListW(
-            &guid,
+            &raw const guid,
             std::ptr::null(),
             buffer_ptr,
             device_interface_list_length,

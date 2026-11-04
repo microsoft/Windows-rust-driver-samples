@@ -56,10 +56,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Checkout windows-drivers-rs actions
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: microsoft/windows-drivers-rs
           ref: main
@@ -92,7 +92,7 @@ jobs:
           target: ${{ matrix.wdk.source == 'nuget' && matrix.target_triple.arch || '' }}
 
       - name: Install Rust Toolchain (${{ matrix.rust_toolchain }})
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
         with:
           toolchain: ${{ matrix.rust_toolchain }}
           targets: ${{ matrix.target_triple.name }}
@@ -105,6 +105,21 @@ jobs:
         uses: ./.github/actions/install-cargo-tool
         with:
           tool: cargo-make
+
+      # Cargo's build-dir layout v2 nests rust-script's long package name twice,
+      # pushing the cargo-make load_script binary's output path past 260
+      # characters (MAX_PATH). MSVC's link.exe does not support longer paths,
+      # so linking fails with LNK1104 (cannot open file).
+      # rust-script runs cargo from %LOCALAPPDATA%\rust-script\projects\<id>, so
+      # this config shortens build-dir for rust-script builds only. A global
+      # build-dir would break wdk-build, which looks for Cargo.lock above OUT_DIR.
+      - name: Shorten rust-script build-dir
+        run: |
+          $configDir = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'rust-script\.cargo'
+          New-Item -ItemType Directory -Force $configDir | Out-Null
+          $buildDir = (Join-Path $env:RUNNER_TEMP 'rsb') -replace '\\', '/'
+          Set-Content (Join-Path $configDir 'config.toml') "[build]`nbuild-dir = '$buildDir'"
+        shell: pwsh
 
       - name: Build and Package Sample Drivers
         # Unset RUSTFLAGS for cargo-make to work around RUSTFLAGS leaking into
