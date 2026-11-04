@@ -3,21 +3,13 @@ name = "echoapp"
 version = "0.1.0"
 description = "Test app for kmdf echo-2 sample driver"
 keywords = ["windows", "kmdf", "driver", "wdk", "sample"]
-rust-version = "1.72.1"
 license.workspace = true
 edition.workspace = true
 publish.workspace = true
 
-[dependencies.once_cell]
-version = "1.19.0"
-
-[dependencies.uuid]
-version = "1.8.0"
-features = ["macro-diagnostics"]
-
-[dependencies.windows-sys]
-version = "0.59.0"
-features = [
+[dependencies]
+uuid = { workspace = true, features = ["macro-diagnostics"] }
+windows-sys = { workspace = true, features = [
   "Win32_Devices_DeviceAndDriverInstallation",
   "Win32_Storage_FileSystem",
   "Win32_Foundation",
@@ -25,4 +17,4 @@ features = [
   "Win32_System_IO",
   "Win32_System_WindowsProgramming",
   "Win32_System_Threading",
-]
+] }
